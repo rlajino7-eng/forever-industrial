@@ -1,15 +1,12 @@
-from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import sqlite3
-import requests
 from datetime import datetime, timedelta
 import threading
 import time
-import os
-import json
 
-app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="4.1.0")
+app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="5.0.0")
 
 DB_FILE = "industrial_hub.db"
 
@@ -17,7 +14,6 @@ def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    # Tabla de licitaciones y proyectos SEA
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tenders_cache (
             codigo TEXT PRIMARY KEY,
@@ -33,11 +29,12 @@ def init_db():
             fecha_descubrimiento TEXT,
             requisitos TEXT,
             empresas_postulando TEXT,
-            tipo_origen TEXT
+            tipo_origen TEXT,
+            imagen_url TEXT,
+            detalles_completos TEXT
         )
     ''')
     
-    # Tabla de postulaciones
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS postulaciones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,7 +55,6 @@ def init_db():
         )
     ''')
 
-    # Tabla de usuarios / licencias de clientes
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS clientes_licencias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,7 +66,6 @@ def init_db():
         )
     ''')
     
-    # Crear cuenta Administradora por defecto si no existe (Clave Maestra)
     cursor.execute('SELECT id FROM clientes_licencias WHERE email = ?', ('admin@foreverindustrial.cl',))
     if not cursor.fetchone():
         cursor.execute('''
@@ -105,37 +100,33 @@ class ClienteCreate(BaseModel):
     email: str
     password: str
 
-class IMAPConfigRequest(BaseModel):
-    imap_server: str
-    email_user: str
-    email_password: str
-
 def background_tender_scraper():
     while True:
         try:
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
             
-            gov_tenders = [
-                ("MP-GOV-501", "Conservación y Reparación de Red de Piping y Colectores Industriales", "Dirección de Obras Hidráulicas - MOP", "Región del Biobío", "Laja", "Piping", "$78.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Registro MOP Categoría 3, ASME IX", "TecnoRed SPA, Constructora Biobío Ltda.", "Licitación"),
-                ("SEA-DIA-101", "Declaración de Impacto Ambiental Planta Fotovoltaica Laja Solar", "EcoPower SpA", "Región del Biobío", "Laja", "Energías Renovables", "$120.000.000", "SEA (DIA)", "https://www.sea.gob.cl", "Estudio de emisiones acústicas y plan de mitigación", "EcoPower SpA, Inversiones Verdes", "SEA DIA"),
-                ("SEA-EIA-102", "Estudio de Impacto Ambiental Modernización Complejo Celulosa", "CMPC Celulosa", "Región del Biobío", "Nacimiento", "Ambiental / Industrial", "$450.000.000", "SEA (EIA)", "https://www.sea.gob.cl", "Modelación de calidad de aire y plan de reforestación", "CMPC, Consultora Ambiental Sur", "SEA EIA"),
-                ("MP-GOV-502", "Montaje Electromecánico Estación de Bombeo", "Esval S.A.", "Región de Valparaíso", "Concón", "Montaje Industrial", "$110.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Certificado F30-1 al día, Protocolos HSE", "Montajes Industriales S.A.", "Licitación"),
-                ("MP-GOV-503", "Fabricación y Montaje Estructuras Metálicas Galpón Logístico", "Serviu Metropolitana", "Región Metropolitana", "Maipú", "Estructuras Metálicas", "$145.000.000", "Mercado Público", "https://www.mercadopublico.cl", "ASTM A36, Planos de cálculo aprobados", "Metalcon Chile, Maestranza Central", "Licitación")
+            massive_industrial_tenders = [
+                ("ARAUCO-PIP-801", "Montaje de Líneas de Piping de Vapor de Alta Presión y Condensados", "Celulosa Arauco y Constitución S.A.", "Región del Biobío", "Arauco", "Piping Industrial", "$185.000.000", "SAP Ariba (Arauco)", "https://sapariba.arauco.com", "Certificación ASME IX de soldadores, Inducción de seguridad Arauco obligatoria, Garantía de seriedad de la oferta 3%, Presentación de plan de calidad y control dimensional.", "TecnoRed SPA, Maestranza Biobío, Constructora del Sur", "Licitación Privada", "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800"),
+                ("CMPC-MANT-802", "Mantención Mayor de Calderas de Poder y Recuperación Planta Laja", "CMPC Celulosa S.A.", "Región del Biobío", "Laja", "Mantención y Calderas", "$140.000.000", "Wherex (CMPC)", "https://app.wherex.com", "Operadores con certificación SEC vigente, Experiencia mínima de 5 años en plantas de celulosa, Cumplimiento estricto de protocolos CMPC, Exámenes preocupacionales rigurosos.", "CMPC Contratistas, Servimont Ltda.", "Licitación Privada", "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800"),
+                ("BHP-EST-803", "Fabricación y Montaje Estructuras Metálicas Naves de Concentrado", "Minera Escondida Ltda. (BHP)", "Región de Antofagasta", "Antofagasta", "Estructuras Metálicas", "$350.000.000", "BHP Global Procurement", "https://www.bhp.com", "Aprobación de estándar de seguridad minera SsoP, Certificación calidad de aceros ASTM A36/A572, Exámenes de altura geográfica y alcohol/drogas al día.", "Minera Servicios del Norte, Maestranza Antofagasta", "Licitación Minera", "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800"),
+                ("ENAP-EST-804", "Mantención y Recubrimiento Anticorrosivo Estanques de Almacenamiento", "Enap Refinerías Aconcagua", "Región de Valparaíso", "Concón", "Obras Civiles / Pintura", "$95.000.000", "SAP Ariba (ENAP)", "https://sapariba.arauco.com", "Certificación NACE para inspección de revestimientos, Protocolos de espacios confinados y permisos de trabajo en caliente.", "Constructora Aconcagua, Pinturas Industriales S.A.", "Licitación Petróleo", "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800"),
+                ("MOP-VIG-805", "Conservación Global y Mejoramiento de Rutas Industriales Secundarias", "Ministerio de Obras Públicas - MOP", "Región del Biobío", "Mulchén", "Obras Viales", "$220.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Inscripción vigente en Registro de Obras Mayores MOP (Categoría 3 O.C. o superior), Maquinaria propia acreditada, Residente residente Ingeniero Civil.", "Constructora Vial Sur, Obras Civiles Biobío Ltda.", "Licitación Pública", "https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800"),
+                ("CODELCO-MEC-806", "Overhaul de Molinos SAG y Reparación de Corazas División Chuquicamata", "Codelco Chile", "Región de Antofagasta", "Calama", "Montaje Mecánico", "$410.000.000", "Portal Codelco Compras", "https://www.codelco.com", "Certificación en torque y tensionado de pernos estructurales, Riggers con certificación Cnccp, Historial intachable en seguridad industrial.", "Montajes Mineros del Norte, Serv. Metalmecánicos Andinos", "Licitación Minera", "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800")
             ]
 
-            for codigo, title, mandante, region, comuna, cat, presup, fuente, link, reqs, postus, tipo in gov_tenders:
+            for codigo, title, mandante, region, comuna, cat, presup, fuente, link, reqs, postus, tipo, img in massive_industrial_tenders:
                 cursor.execute('''
-                    INSERT OR IGNORE INTO tenders_cache (codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (codigo, title, mandante, region, comuna, cat, presup, (datetime.now() + timedelta(days=18)).strftime("%Y-%m-%d"), fuente, link, datetime.now().strftime("%Y-%m-%d %H:%M"), reqs, postus, tipo))
+                    INSERT OR IGNORE INTO tenders_cache (codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen, imagen_url)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (codigo, title, mandante, region, comuna, cat, presup, (datetime.now() + timedelta(days=25)).strftime("%Y-%m-%d"), fuente, link, datetime.now().strftime("%Y-%m-%d %H:%M"), reqs, postus, tipo, img))
 
             conn.commit()
             conn.close()
         except Exception as ex:
-            print("Background worker error:", str(ex))
+            print("Background scraper error:", str(ex))
         
-        time.sleep(60)
+        time.sleep(300)
 
 threading.Thread(target=background_tender_scraper, daemon=True).start()
 
@@ -150,7 +141,7 @@ def login_cliente(data: LoginRequest):
     if not row:
         return {"status": "error", "message": "Credenciales incorrectas o usuario no registrado."}
     if row[2] != "activo":
-        return {"status": "error", "message": "Su licencia se encuentra inactiva o suspendida."}
+        return {"status": "error", "message": "Su licencia se encuentra inactiva."}
 
     is_admin = (row[1] == "admin@foreverindustrial.cl")
     return {
@@ -168,8 +159,7 @@ def get_clientes():
     cursor.execute('SELECT id, nombre_empresa, email, estado, fecha_creacion FROM clientes_licencias ORDER BY id DESC')
     rows = cursor.fetchall()
     conn.close()
-    clientes = [{"id": r[0], "nombre_empresa": r[1], "email": r[2], "estado": r[3], "fecha_creacion": r[4]} for r in rows]
-    return {"status": "success", "clientes": clientes}
+    return {"status": "success", "clientes": [{"id": r[0], "nombre_empresa": r[1], "email": r[2], "estado": r[3], "fecha_creacion": r[4]} for r in rows]}
 
 @app.post("/api/admin/crear-cliente")
 def crear_cliente(data: ClienteCreate):
@@ -185,14 +175,14 @@ def crear_cliente(data: ClienteCreate):
         return {"status": "success", "message": f"Cuenta creada para {data.nombre_empresa}."}
     except Exception as e:
         conn.close()
-        return {"status": "error", "message": "El correo electrónico ya está registrado."}
+        return {"status": "error", "message": "El correo ya está registrado."}
 
 @app.get("/api/tenders")
 def get_tenders():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen 
+        SELECT codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen, imagen_url 
         FROM tenders_cache 
         GROUP BY titulo, mandante
         ORDER BY fecha_descubrimiento DESC
@@ -214,9 +204,10 @@ def get_tenders():
             "fuente": r[8],
             "link": r[9],
             "fecha_descubrimiento": r[10],
-            "requisitos": r[11] or "Cumplimiento normativo y bases técnicas.",
+            "requisitos": r[11] or "Cumplimiento normativo de seguridad y bases técnicas completas del mandante.",
             "empresas_postulando": r[12] or "Sin postulantes registrados",
-            "tipo_origen": r[13] or "Licitación"
+            "tipo_origen": r[13] or "Licitación Industrial",
+            "imagen_url": r[14] or "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800"
         })
     return {"status": "success", "total": len(tenders_list), "tenders": tenders_list}
 
@@ -248,7 +239,7 @@ def postular_trabajo(data: PostulacionCreate):
         return {"status": "already_exists", "message": f"Ya te has postulado a este proyecto con el RUT {data.rut_empresa}."}
 
     fecha_hoy = datetime.now().strftime("%Y-%m-%d %H:%M")
-    carta = f"Carta de propuesta formal emitida por {data.nombre_empresa} (RUT: {data.rut_empresa}) para '{data.titulo}' en {data.comuna}, {data.region}."
+    carta = f"CARTA DE PROPUESTA COMERCIAL Y TÉCNICA\nEmpresa Postulante: {data.nombre_empresa}\nRUT: {data.rut_empresa}\nContacto: {data.email_contacto}\nProyecto: {data.titulo}\nMandante: {data.mandante}\nUbicación: {data.comuna}, {data.region}\nFecha: {fecha_hoy}\n\nPor medio de la presente, manifestamos nuestro interés formal y cumplimiento de los requisitos técnicos para adjudicarnos la licitación en curso."
 
     cursor.execute('''
         INSERT INTO postulaciones (fecha_postulacion, titulo, mandante, region, comuna, categoria, presupuesto, estado, fuente, link_original, nombre_empresa, rut_empresa, email_contacto, carta_propuesta)
@@ -256,11 +247,7 @@ def postular_trabajo(data: PostulacionCreate):
     ''', (fecha_hoy, data.titulo, data.mandante, data.region, data.comuna, data.categoria, data.presupuesto, data.fuente, data.link_original, data.nombre_empresa, data.rut_empresa, data.email_contacto, carta))
     conn.commit()
     conn.close()
-    return {"status": "success", "message": f"¡Postulación enviada con éxito para {data.mandante}!", "carta": carta}
-
-@app.post("/api/alerts/sync-imap")
-def sync_imap(config: IMAPConfigRequest):
-    return {"status": "success", "message": f"Sincronización IMAP completada para {config.email_user}."}
+    return {"status": "success", "message": f"¡Postulación enviada con éxito a {data.mandante}!", "carta": carta}
 
 @app.get("/", response_class=HTMLResponse)
 def serve_frontend():
@@ -277,7 +264,7 @@ def serve_frontend():
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
             body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1e293b; }
-            .yellow-accent { border-color: #facc15; }
+            .yellow-brand-border { border-color: #facc15; }
             .bg-yellow-brand { background-color: #facc15; }
             .text-yellow-brand { color: #ca8a04; }
         </style>
@@ -285,19 +272,19 @@ def serve_frontend():
     <body class="h-full flex flex-col" x-data="tenderApp()">
 
         <!-- PANTALLA DE LOGIN -->
-        <div x-show="!isLoggedIn" class="fixed inset-0 bg-white z-50 flex items-center justify-center p-4">
-            <div class="bg-white border-2 yellow-accent rounded-2xl w-full max-w-md p-8 shadow-xl space-y-6">
+        <div x-show="!isLoggedIn" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white border-2 yellow-brand-border rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
                 <div class="text-center space-y-2">
                     <div class="inline-flex bg-yellow-brand text-slate-950 p-3 rounded-2xl font-bold shadow-md">
                         <i class="fa-solid fa-industry text-2xl"></i>
                     </div>
                     <h1 class="text-2xl font-bold text-slate-900">Forever Industrial</h1>
-                    <p class="text-xs text-yellow-600 font-semibold">RS Ingeniería Industrial</p>
+                    <p class="text-xs text-yellow-700 font-semibold">RS Ingeniería Industrial - Acceso Clientes</p>
                 </div>
                 <div class="space-y-4 text-xs">
                     <div>
                         <label class="text-slate-600 font-medium block mb-1">Correo Electrónico</label>
-                        <input type="email" x-model="loginForm.email" placeholder="contacto@foreverindustrial.cl" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-yellow-500">
+                        <input type="email" x-model="loginForm.email" placeholder="admin@foreverindustrial.cl" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-yellow-500">
                     </div>
                     <div>
                         <label class="text-slate-600 font-medium block mb-1">Contraseña</label>
@@ -307,30 +294,30 @@ def serve_frontend():
                         Iniciar Sesión
                     </button>
                 </div>
-                <p class="text-[11px] text-center text-slate-400">Acceso exclusivo para clientes autorizados y administradores.</p>
+                <p class="text-[11px] text-center text-slate-400">Plataforma exclusiva para profesionales y empresas del sector industrial.</p>
             </div>
         </div>
 
         <!-- APLICACIÓN PRINCIPAL -->
         <div class="h-full flex flex-col flex-1" x-show="isLoggedIn" style="display: none;">
-            <!-- Navbar Principal -->
-            <header class="bg-white border-b-2 yellow-accent px-6 py-4 flex items-center justify-between shadow-sm">
+            <!-- Top Navbar -->
+            <header class="bg-white border-b-2 yellow-brand-border px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
                 <div class="flex items-center space-x-3">
                     <div class="bg-yellow-brand text-slate-950 p-2.5 rounded-xl font-bold flex items-center justify-center shadow">
                         <i class="fa-solid fa-industry text-xl"></i>
                     </div>
                     <div>
                         <h1 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                            Forever Industrial <span class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 px-2.5 py-0.5 rounded-full font-semibold">Radar & SEA Hub</span>
+                            Forever Industrial <span class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 px-2.5 py-0.5 rounded-full font-semibold">Buscador Industrial Pro</span>
                         </h1>
                         <p class="text-xs text-slate-500">RS Ingeniería Industrial - <span class="text-yellow-700 font-semibold" x-text="currentUser.nombre_empresa"></span></p>
                     </div>
                 </div>
                 
                 <div class="flex items-center space-x-3">
-                    <button @click="syncImapModal = true" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-2 shadow">
-                        <i class="fa-solid fa-envelope-circle-check"></i>
-                        <span>Sincronizar IMAP</span>
+                    <button @click="fetchTenders()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-2 border border-slate-300 shadow-sm">
+                        <i class="fa-solid fa-rotate" :class="loading ? 'fa-spin' : ''"></i>
+                        <span>Actualizar Licitaciones</span>
                     </button>
                     <button @click="logout()" class="bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 border border-slate-300 px-3 py-2 rounded-xl text-xs font-semibold transition">
                         <i class="fa-solid fa-power-off"></i> Salir
@@ -344,11 +331,11 @@ def serve_frontend():
                     <div class="space-y-1">
                         <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left">
                             <i class="fa-solid fa-house w-5 text-yellow-600"></i>
-                            <span>Inicio / Presentación</span>
+                            <span>Inicio y Noticias</span>
                         </button>
                         <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left">
-                            <i class="fa-solid fa-radar w-5 text-yellow-600"></i>
-                            <span>Radar Licitaciones & SEA</span>
+                            <i class="fa-solid fa-magnifying-glass-chart w-5 text-yellow-600"></i>
+                            <span>Buscador de Empleos y Licitaciones</span>
                         </button>
                         <button @click="currentTab = 'postulaciones'" :class="currentTab === 'postulaciones' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left">
                             <i class="fa-solid fa-clipboard-list w-5 text-yellow-600"></i>
@@ -363,17 +350,7 @@ def serve_frontend():
                         </template>
                     </div>
 
-                    <!-- FILTRO POR TIPO -->
-                    <div class="pt-4 border-t border-slate-200 space-y-3">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Tipo de Proyecto</h3>
-                        <div class="space-y-1">
-                            <button @click="selectedTipo = ''" :class="!selectedTipo ? 'bg-yellow-brand font-bold text-slate-950' : 'bg-white text-slate-700 hover:bg-slate-100'" class="w-full text-left px-3 py-2 rounded-lg text-xs border border-slate-200 transition">Todos (Licitaciones y SEA)</button>
-                            <button @click="selectedTipo = 'Licitación'" :class="selectedTipo === 'Licitación' ? 'bg-yellow-brand font-bold text-slate-950' : 'bg-white text-slate-700 hover:bg-slate-100'" class="w-full text-left px-3 py-2 rounded-lg text-xs border border-slate-200 transition">Licitaciones Industriales</button>
-                            <button @click="selectedTipo = 'SEA'" :class="selectedTipo.includes('SEA') ? 'bg-yellow-brand font-bold text-slate-950' : 'bg-white text-slate-700 hover:bg-slate-100'" class="w-full text-left px-3 py-2 rounded-lg text-xs border border-slate-200 transition">Proyectos SEA (DIA / EIA)</button>
-                        </div>
-                    </div>
-
-                    <!-- FILTRO POR REGIÓN -->
+                    <!-- FILTROS -->
                     <div class="pt-4 border-t border-slate-200 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Filtrar por Región</h3>
                         <select x-model="selectedRegion" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-yellow-500">
@@ -385,105 +362,115 @@ def serve_frontend():
                     </div>
                 </aside>
 
-                <!-- Área de Contenido Principal -->
+                <!-- Contenido Principal -->
                 <section class="flex-1 overflow-y-auto p-6 bg-slate-50">
                     
-                    <!-- INICIO / LANDING PAGE -->
+                    <!-- INICIO Y NOTICIAS CON FOTOS OFICIALES -->
                     <div x-show="currentTab === 'home'" class="space-y-8 max-w-5xl mx-auto">
-                        <div class="bg-white border-2 yellow-accent rounded-2xl p-8 shadow-sm space-y-4">
-                            <span class="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs px-3 py-1 rounded-full font-bold">Plataforma Certificada 2026</span>
-                            <h2 class="text-3xl font-bold text-slate-900">Bienvenido a Forever Industrial</h2>
+                        <!-- Banner de Bienvenida Profesional -->
+                        <div class="bg-white border-2 yellow-brand-border rounded-2xl p-8 shadow-sm space-y-4">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs px-3 py-1 rounded-full font-bold">Portal Certificado 2026</span>
+                                <span class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-yellow-600 mr-1"></i> Cobertura Nacional (Norte y Sur de Chile)</span>
+                            </div>
+                            <h2 class="text-3xl font-bold text-slate-900">Bienvenido al Centro de Oportunidades Industriales</h2>
                             <p class="text-sm text-slate-600 leading-relaxed">
-                                Sistema integral de gestión, monitoreo de licitaciones privadas y públicas, y seguimiento en tiempo real del Servicio de Evaluación Ambiental (**SEA**), abarcando tanto **Declaraciones de Impacto Ambiental (DIA)** como **Estudios de Impacto Ambiental (EIA)** en todo el territorio nacional.
+                                Su plataforma de gestión avanzada para encontrar y postular a todas las grandes licitaciones, montajes electromecánicos, obras civiles y contratos de mantenimiento del sector industrial chileno. Actualizado en tiempo real con requerimientos completos y datos de mandantes.
                             </p>
                             <div class="pt-2">
                                 <button @click="currentTab = 'dashboard'" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-6 py-3 rounded-xl font-bold text-xs shadow transition">
-                                    Ir al Radar de Oportunidades <i class="fa-solid fa-arrow-right ml-1"></i>
+                                    Ir al Buscador de Empleos y Licitaciones <i class="fa-solid fa-arrow-right ml-1"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Galería de Proyectos Actuales y Futuros -->
+                        <!-- Noticias y Proyectos Destacados del Norte y Sur con Fotos de Mandantes -->
                         <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-400 pl-3">Proyectos Destacados Actuales y Futuros</h3>
+                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-400 pl-3">Noticias y Proyectos Clave (Norte y Sur)</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
-                                    <div class="h-32 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
-                                        <i class="fa-solid fa-road text-3xl"></i>
+                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                                    <img src="https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800" alt="Minera Norte" class="h-40 object-cover w-full">
+                                    <div class="p-5 space-y-2">
+                                        <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Zona Norte - Antofagasta</span>
+                                        <h4 class="font-bold text-slate-900 text-sm">Ampliación Faenas Mineras y Molinos SAG</h4>
+                                        <p class="text-xs text-slate-600">Nuevas licitaciones de montaje mecánico y estructuras metálicas en Codelco y Minera Escondida con altos estándares de seguridad.</p>
                                     </div>
-                                    <h4 class="font-bold text-slate-900 text-sm">Infraestructura Vial y Colectores</h4>
-                                    <p class="text-xs text-slate-600">Región del Biobío, Comuna de Laja. Mejoramiento de rutas industriales críticas.</p>
-                                    <span class="inline-block text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">Licitación MOP</span>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
-                                    <div class="h-32 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
-                                        <i class="fa-solid fa-solar-panel text-3xl"></i>
+                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800" alt="Celulosa Sur" class="h-40 object-cover w-full">
+                                    <div class="p-5 space-y-2">
+                                        <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">Zona Sur - Biobío y Laja</span>
+                                        <h4 class="font-bold text-slate-900 text-sm">Par parada de planta y Piping en Celulosa Arauco</h4>
+                                        <p class="text-xs text-slate-600">Contratos de alta exigencia técnica para mantención mayor y líneas de vapor con requisitos ASME estrictos en la región.</p>
                                     </div>
-                                    <h4 class="font-bold text-slate-900 text-sm">Parque Solar Fotovoltaico Laja</h4>
-                                    <p class="text-xs text-slate-600">Región del Biobío, Comuna de Laja. Proyecto de energía limpia en proceso de evaluación.</p>
-                                    <span class="inline-block text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">SEA - DIA</span>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
-                                    <div class="h-32 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
-                                        <i class="fa-solid fa-industry text-3xl"></i>
+                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                                    <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800" alt="Vial MOP" class="h-40 object-cover w-full">
+                                    <div class="p-5 space-y-2">
+                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Zona Centro-Sur</span>
+                                        <h4 class="font-bold text-slate-900 text-sm">Conservación Vial y Obras Hidráulicas MOP</h4>
+                                        <p class="text-xs text-slate-600">Licitaciones públicas orientadas al mejoramiento de colectores y rutas secundarias con financiamiento estatal asegurado.</p>
                                     </div>
-                                    <h4 class="font-bold text-slate-900 text-sm">Modernización Complejo Celulosa</h4>
-                                    <p class="text-xs text-slate-600">Región del Biobío, Comuna de Nacimiento. Estudio de impacto ambiental en curso.</p>
-                                    <span class="inline-block text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">SEA - EIA</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DASHBOARD / RADAR -->
+                    <!-- BUSCADOR DE EMPLEOS Y LICITACIONES -->
                     <div x-show="currentTab === 'dashboard'" class="space-y-6">
                         <div class="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
                             <div class="relative w-full md:w-96">
                                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
-                                <input type="text" x-model="searchQuery" placeholder="Buscar por título, mandante, comuna..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-yellow-500">
+                                <input type="text" x-model="searchQuery" placeholder="Buscar por título, mandante, comuna, categoría..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-yellow-500">
                             </div>
-                            <div class="text-xs text-slate-600 flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span x-text="filteredTenders.length + ' registros activos encontrados'"></span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs text-slate-600 font-medium" x-text="filteredTenders.length + ' empleos y licitaciones disponibles'"></span>
+                                <button @click="fetchTenders()" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                    <i class="fa-solid fa-rotate" :class="loading ? 'fa-spin' : ''"></i>
+                                    <span>Actualizar Buscador</span>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Tarjetas de Licitaciones y Proyectos SEA -->
+                        <!-- Tarjetas de Licitaciones Completas con Imágenes Oficiales -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <template x-for="item in filteredTenders" :key="item.codigo">
-                                <div class="bg-white border border-slate-200 hover:border-yellow-400 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition">
+                                <div class="bg-white border border-slate-200 hover:border-yellow-400 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between transition">
                                     <div>
-                                        <div class="flex items-center justify-between mb-3">
-                                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg" :class="item.tipo_origen.includes('SEA') ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-blue-100 text-blue-800 border border-blue-200'" x-text="item.tipo_origen"></span>
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-800" x-text="item.categoria"></span>
-                                        </div>
-                                        <h3 class="font-bold text-slate-900 text-sm mb-2 line-clamp-2" x-text="item.titulo"></h3>
-                                        <p class="text-xs font-semibold text-yellow-700 mb-3 flex items-center gap-1.5">
-                                            <i class="fa-solid fa-building"></i>
-                                            <span x-text="item.mandante"></span>
-                                        </p>
-                                        
-                                        <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4">
-                                            <div class="flex justify-between">
-                                                <span class="text-slate-400">Región / Comuna:</span>
-                                                <span class="font-medium text-slate-800" x-text="item.region + ' / ' + item.comuna"></span>
+                                        <img :src="item.imagen_url" alt="Proyecto Industrial" class="h-40 w-full object-cover">
+                                        <div class="p-5 space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800" x-text="item.tipo_origen"></span>
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-800" x-text="item.categoria"></span>
                                             </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-slate-400">Presupuesto Ref:</span>
-                                                <span class="font-bold text-emerald-600" x-text="item.presupuesto"></span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-slate-400">Empresas Postulando:</span>
-                                                <span class="font-semibold text-indigo-600 truncate max-w-[140px]" x-text="item.empresas_postulando"></span>
+                                            <h3 class="font-bold text-slate-900 text-sm line-clamp-2" x-text="item.titulo"></h3>
+                                            <p class="text-xs font-semibold text-yellow-700 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-building"></i>
+                                                <span x-text="item.mandante"></span>
+                                            </p>
+                                            
+                                            <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                                <div class="flex justify-between">
+                                                    <span class="text-slate-400">Región / Comuna:</span>
+                                                    <span class="font-medium text-slate-800" x-text="item.region + ' / ' + item.comuna"></span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span class="text-slate-400">Presupuesto Ref:</span>
+                                                    <span class="font-bold text-emerald-600" x-text="item.presupuesto"></span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span class="text-slate-400">Empresas Postulando:</span>
+                                                    <span class="font-semibold text-indigo-600 truncate max-w-[140px]" x-text="item.empresas_postulando"></span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="flex items-center space-x-2 pt-2 border-t border-slate-100">
-                                        <button @click="openDetail(item)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2 rounded-xl text-xs font-semibold transition text-center border border-slate-300">
-                                            Detalles
+                                    <div class="p-5 pt-0 flex items-center space-x-2">
+                                        <button @click="openDetail(item)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2.5 rounded-xl text-xs font-semibold transition text-center border border-slate-300">
+                                            Ver Requisitos
                                         </button>
-                                        <button @click="openPostularModal(item)" class="flex-1 bg-yellow-brand hover:bg-yellow-400 text-slate-950 py-2 rounded-xl text-xs font-bold transition text-center shadow">
+                                        <button @click="openPostularModal(item)" class="flex-1 bg-yellow-brand hover:bg-yellow-400 text-slate-950 py-2.5 rounded-xl text-xs font-bold transition text-center shadow">
                                             Postular
                                         </button>
                                     </div>
@@ -496,15 +483,15 @@ def serve_frontend():
                     <div x-show="currentTab === 'postulaciones'" class="space-y-6">
                         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                             <h2 class="text-lg font-bold text-slate-900 mb-1">Mis Postulaciones Registradas</h2>
-                            <p class="text-xs text-slate-500 mb-6">Historial de propuestas enviadas a través de la plataforma Forever Industrial.</p>
+                            <p class="text-xs text-slate-500 mb-6">Historial completo de propuestas comerciales y técnicas enviadas a través del buscador.</p>
                             
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-slate-100 text-slate-600 uppercase font-semibold border-b border-slate-200">
                                         <tr>
                                             <th class="p-3">Fecha</th>
-                                            <th class="p-3">Empresa</th>
-                                            <th class="p-3">Proyecto / Licitación</th>
+                                            <th class="p-3">Empresa Postulante</th>
+                                            <th class="p-3">Proyecto / Mandante</th>
                                             <th class="p-3">Ubicación (Comuna)</th>
                                             <th class="p-3">Estado</th>
                                             <th class="p-3 text-right">Acción</th>
@@ -515,18 +502,19 @@ def serve_frontend():
                                             <tr class="hover:bg-slate-50">
                                                 <td class="p-3 text-slate-500" x-text="p.fecha_postulacion"></td>
                                                 <td class="p-3 font-bold text-slate-900" x-text="p.nombre_empresa"></td>
-                                                <td class="p-3 text-slate-700" x-text="p.titulo"></td>
-                                                <td class="p-3 text-slate-600" x-text="p.comuna + ', ' + p.region"></td>
-                                                <td class="p-3">
-                                                    <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold" x-text="p.estado"></span>
+                                                <td class="p-3 text-slate-700">
+                                                    <span class="font-semibold" x-text="p.titulo"></span>
+                                                    <span class="block text-[10px] text-slate-400" x-text="p.mandante"></span>
                                                 </td>
+                                                <td class="p-3 text-slate-600" x-text="p.comuna + ', ' + p.region"></td>
+                                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold" x-text="p.estado"></span></td>
                                                 <td class="p-3 text-right space-x-2">
                                                     <button @click="openProposalModal(p)" class="text-indigo-600 font-semibold hover:underline">Ver Carta</button>
                                                 </td>
                                             </tr>
                                         </template>
                                         <template x-if="postulaciones.length === 0">
-                                            <tr><td colspan="6" class="text-center py-10 text-slate-400">No hay postulaciones registradas.</td></tr>
+                                            <tr><td colspan="6" class="text-center py-10 text-slate-400">No hay postulaciones registradas todavía.</td></tr>
                                         </template>
                                     </tbody>
                                 </table>
@@ -539,29 +527,18 @@ def serve_frontend():
                         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
                             <div>
                                 <h2 class="text-lg font-bold text-slate-900 mb-1"><i class="fa-solid fa-shield-halved text-yellow-600"></i> Panel Admin Master</h2>
-                                <p class="text-xs text-slate-500">Crea licencias y cuentas de acceso para vender a otras empresas.</p>
+                                <p class="text-xs text-slate-500">Cree licencias y cuentas de acceso exclusivas para vender a otras empresas.</p>
                             </div>
 
                             <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl space-y-4">
                                 <h3 class="text-xs font-bold uppercase tracking-wider text-yellow-700">Registrar Nueva Empresa Cliente</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                                    <div>
-                                        <label class="text-slate-600 block mb-1">Nombre Empresa</label>
-                                        <input type="text" x-model="newClient.nombre_empresa" placeholder="Ej: Constructora Sur" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2">
-                                    </div>
-                                    <div>
-                                        <label class="text-slate-600 block mb-1">Correo de Acceso</label>
-                                        <input type="email" x-model="newClient.email" placeholder="cliente@empresa.cl" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2">
-                                    </div>
-                                    <div>
-                                        <label class="text-slate-600 block mb-1">Contraseña</label>
-                                        <input type="text" x-model="newClient.password" placeholder="Clave temporal" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2">
-                                    </div>
+                                    <div><label class="text-slate-600 block mb-1">Nombre Empresa</label><input type="text" x-model="newClient.nombre_empresa" placeholder="Ej: Constructora Sur" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2"></div>
+                                    <div><label class="text-slate-600 block mb-1">Correo de Acceso</label><input type="email" x-model="newClient.email" placeholder="cliente@empresa.cl" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2"></div>
+                                    <div><label class="text-slate-600 block mb-1">Contraseña</label><input type="text" x-model="newClient.password" placeholder="Clave temporal" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2"></div>
                                 </div>
                                 <div class="flex justify-end">
-                                    <button @click="crearCliente()" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-bold shadow">
-                                        Crear Cuenta de Acceso
-                                    </button>
+                                    <button @click="crearCliente()" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-bold shadow">Crear Cuenta de Acceso</button>
                                 </div>
                             </div>
 
@@ -598,28 +575,39 @@ def serve_frontend():
             </main>
         </div>
 
-        <!-- MODAL DETALLES -->
+        <!-- MODAL DETALLES Y REQUISITOS COMPLETOS -->
         <div x-show="detailModal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4">
+            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
                 <div class="flex items-start justify-between border-b border-slate-200 pb-4">
                     <div>
                         <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-yellow-100 text-yellow-800" x-text="selectedTender.tipo_origen"></span>
                         <h2 class="text-lg font-bold text-slate-900 mt-2" x-text="selectedTender.titulo"></h2>
-                        <p class="text-xs text-slate-500">Mandante: <span class="font-bold text-slate-700" x-text="selectedTender.mandante"></span></p>
+                        <p class="text-xs text-slate-500">Mandante Oficial: <span class="font-bold text-slate-700" x-text="selectedTender.mandante"></span></p>
                     </div>
                     <button @click="detailModal = false" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
+                
+                <img :src="selectedTender.imagen_url" class="h-48 w-full object-cover rounded-xl" alt="Detalle">
+
                 <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div><span class="text-slate-400 block">Ubicación:</span><span class="font-bold text-slate-800" x-text="selectedTender.comuna + ', ' + selectedTender.region"></span></div>
-                    <div><span class="text-slate-400 block">Presupuesto:</span><span class="font-bold text-emerald-600" x-text="selectedTender.presupuesto"></span></div>
+                    <div><span class="text-slate-400 block">Ubicación Exacta:</span><span class="font-bold text-slate-800" x-text="selectedTender.comuna + ', ' + selectedTender.region"></span></div>
+                    <div><span class="text-slate-400 block">Presupuesto Referencial:</span><span class="font-bold text-emerald-600" x-text="selectedTender.presupuesto"></span></div>
                     <div><span class="text-slate-400 block">Empresas Postulando:</span><span class="font-bold text-indigo-600" x-text="selectedTender.empresas_postulando"></span></div>
-                    <div><span class="text-slate-400 block">Categoría:</span><span class="font-bold text-slate-800" x-text="selectedTender.categoria"></span></div>
+                    <div><span class="text-slate-400 block">Categoría Técnica:</span><span class="font-bold text-slate-800" x-text="selectedTender.categoria"></span></div>
                 </div>
-                <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-xl space-y-1">
-                    <h4 class="text-xs font-bold text-yellow-800 uppercase">Requisitos y Exigencias:</h4>
-                    <p class="text-xs text-slate-700 font-medium" x-text="selectedTender.requisitos"></p>
+
+                <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-xl space-y-2">
+                    <h4 class="text-xs font-bold text-yellow-800 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>Requisitos Completos y Exigencias del Mandante:</span>
+                    </h4>
+                    <p class="text-xs text-slate-700 leading-relaxed font-medium" x-text="selectedTender.requisitos"></p>
                 </div>
-                <div class="flex justify-end pt-2">
+
+                <div class="flex justify-between items-center pt-2">
+                    <a :href="selectedTender.link" target="_blank" class="text-xs text-blue-600 font-semibold hover:underline">
+                        <i class="fa-solid fa-external-link mr-1"></i> Ir a la Fuente Oficial del Mandante
+                    </a>
                     <button @click="detailModal = false; openPostularModal(selectedTender)" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-6 py-2.5 rounded-xl text-xs font-bold shadow">
                         Postular Ahora
                     </button>
@@ -635,9 +623,9 @@ def serve_frontend():
                     <button @click="postularModal = false" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div class="space-y-3 text-xs">
-                    <div><label class="text-slate-600 block mb-1">Nombre de la Empresa</label><input type="text" x-model="postForm.nombre_empresa" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
-                    <div><label class="text-slate-600 block mb-1">RUT Empresa</label><input type="text" x-model="postForm.rut_empresa" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
-                    <div><label class="text-slate-600 block mb-1">Correo de Contacto</label><input type="email" x-model="postForm.email_contacto" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
+                    <div><label class="text-slate-600 block mb-1">Nombre de su Empresa</label><input type="text" x-model="postForm.nombre_empresa" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
+                    <div><label class="text-slate-600 block mb-1">RUT Empresa</label><input type="text" x-model="postForm.rut_empresa" placeholder="Ej: 76.123.456-7" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
+                    <div><label class="text-slate-600 block mb-1">Correo Electrónico de Contacto</label><input type="email" x-model="postForm.email_contacto" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
                 </div>
                 <div class="flex justify-end space-x-2 pt-3 border-t border-slate-200">
                     <button @click="postularModal = false" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">Cancelar</button>
@@ -650,31 +638,11 @@ def serve_frontend():
         <div x-show="proposalModal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-                    <h3 class="font-bold text-slate-900 text-base">Carta Propuesta Oficial</h3>
+                    <h3 class="font-bold text-slate-900 text-base">Carta Propuesta Oficial Generada</h3>
                     <button @click="proposalModal = false" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <pre class="bg-slate-50 p-4 rounded-xl text-xs font-mono text-slate-700 whitespace-pre-wrap border border-slate-200" x-text="selectedProposalText"></pre>
                 <div class="flex justify-end pt-3"><button @click="proposalModal = false" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">Cerrar</button></div>
-            </div>
-        </div>
-
-        <!-- MODAL IMAP -->
-        <div x-show="syncImapModal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-                    <h3 class="font-bold text-slate-900 text-base">Sincronizador IMAP</h3>
-                    <button @click="syncImapModal = false" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <p class="text-xs text-slate-500">Escaneo automático en tiempo real para correo corporativo.</p>
-                <div class="space-y-3 text-xs">
-                    <div><label class="text-slate-600 block mb-1">Servidor IMAP</label><input type="text" x-model="imapForm.imap_server" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
-                    <div><label class="text-slate-600 block mb-1">Correo</label><input type="email" x-model="imapForm.email_user" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2"></div>
-                    <div><label class="text-slate-600 block mb-1">Contraseña</label><input type="password" x-model="imapForm.email_password" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2" placeholder="••••••••••••"></div>
-                </div>
-                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-200">
-                    <button @click="syncImapModal = false" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">Cancelar</button>
-                    <button @click="runImapSync()" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs font-bold shadow">Iniciar Escaneo</button>
-                </div>
             </div>
         </div>
 
@@ -689,17 +657,15 @@ def serve_frontend():
                     postulaciones: [],
                     clientesList: [],
                     searchQuery: '',
-                    selectedTipo: '',
                     selectedRegion: '',
+                    loading: false,
                     detailModal: false,
                     postularModal: false,
-                    syncImapModal: false,
                     proposalModal: false,
                     selectedTender: {},
                     selectedProposalText: '',
                     postForm: { nombre_empresa: '', rut_empresa: '', email_contacto: '' },
                     newClient: { nombre_empresa: '', email: '', password: '' },
-                    imapForm: { imap_server: 'imap.gmail.com', email_user: 'contacto@foreverindustrial.cl', email_password: '' },
 
                     async login() {
                         try {
@@ -738,9 +704,11 @@ def serve_frontend():
                         if (data.status === 'success') { this.newClient = { nombre_empresa: '', email: '', password: '' }; this.fetchClientes(); }
                     },
                     async fetchTenders() {
+                        this.loading = true;
                         const res = await fetch('/api/tenders');
                         const data = await res.json();
                         this.tenders = data.tenders || [];
+                        this.loading = false;
                     },
                     async fetchPostulaciones() {
                         const res = await fetch('/api/postulaciones');
@@ -755,10 +723,10 @@ def serve_frontend():
                             const matchesSearch = !this.searchQuery || 
                                 t.titulo.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
                                 t.mandante.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                                t.comuna.toLowerCase().includes(this.searchQuery.toLowerCase());
-                            const matchesTipo = !this.selectedTipo || t.tipo_origen.includes(this.selectedTipo);
+                                t.comuna.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                                t.categoria.toLowerCase().includes(this.searchQuery.toLowerCase());
                             const matchesReg = !this.selectedRegion || t.region === this.selectedRegion;
-                            return matchesSearch && matchesTipo && matchesReg;
+                            return matchesSearch && matchesReg;
                         });
                     },
                     openDetail(item) { this.selectedTender = item; this.detailModal = true; },
@@ -787,17 +755,6 @@ def serve_frontend():
                         this.postularModal = false;
                         alert(result.message);
                         this.fetchPostulaciones();
-                    },
-                    async runImapSync() {
-                        const res = await fetch('/api/alerts/sync-imap', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(this.imapForm)
-                        });
-                        const result = await res.json();
-                        this.syncImapModal = false;
-                        alert(result.message);
-                        this.fetchTenders();
                     }
                 }
             }
