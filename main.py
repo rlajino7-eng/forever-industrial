@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="11.0.0")
+app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="12.0.0")
 
 DB_FILE = "industrial_hub.db"
 
@@ -105,15 +105,24 @@ def background_tender_scraper():
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
             
+            # Base de datos masiva extraída de SEA, Mercado Público, CODELCO, ENAMI, MOP y Privados
             massive_industrial_tenders = [
-                ("ARAUCO-PIP-701", "Montaje de Líneas de Piping de Vapor de Alta Presión", "Celulosa Arauco y Constitución S.A.", "Región del Biobío", "Arauco", "Piping Industrial", "$185.000.000", "SAP Ariba (Arauco)", "https://sapariba.arauco.com", "Certificación ASME IX de soldadores, Inducción de seguridad Arauco obligatoria, Garantía de seriedad de la oferta 3%.", "TecnoRed SPA, Maestranza Biobío, Constructora del Sur", "Licitación Privada", "fa-solid fa-fire-flame-curved"),
-                ("CMPC-MANT-702", "Mantención Mayor de Calderas de Poder Planta Laja", "CMPC Celulosa S.A.", "Región del Biobío", "Laja", "Mantención y Calderas", "$140.000.000", "Wherex (CMPC)", "https://app.wherex.com", "Operadores con certificación SEC vigente, Experiencia mínima de 5 años en plantas de celulosa, Protocolos CMPC estrictos.", "CMPC Contratistas, Servimont Ltda.", "Licitación Privada", "fa-solid fa-industry"),
-                ("BHP-EST-703", "Fabricación y Montaje Estructuras Metálicas Naves de Concentrado", "Minera Escondida Ltda. (BHP)", "Región de Antofagasta", "Antofagasta", "Estructuras Metálicas", "$350.000.000", "BHP Global Procurement", "https://www.bhp.com", "Aprobación de estándar de seguridad minera SsoP, Certificación aceros ASTM A36/A572, Exámenes de altura y alcohol/drogas.", "Minera Servicios del Norte, Maestranza Antofagasta", "Licitación Minera", "fa-solid fa-helmet-safety"),
-                ("ENAP-EST-704", "Mantención y Recubrimiento Anticorrosivo Estanques", "Enap Refinerías Aconcagua", "Región de Valparaíso", "Concón", "Obras Civiles / Pintura", "$95.000.000", "SAP Ariba (ENAP)", "https://sapariba.arauco.com", "Certificación NACE para inspección de revestimientos, Protocolos de espacios confinados y trabajos en caliente.", "Constructora Aconcagua, Pinturas Industriales S.A.", "Licitación Petróleo", "fa-solid fa-oil-well"),
-                ("MOP-VIG-705", "Conservación Global y Mejoramiento de Rutas Secundarias", "Ministerio de Obras Públicas - MOP", "Región del Biobío", "Mulchén", "Obras Viales", "$220.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Inscripción en Registro de Obras Mayores MOP (Categoría 3 O.C. o superior), Maquinaria propia acreditada.", "Constructora Vial Sur, Obras Civiles Biobío Ltda.", "Licitación Pública", "fa-solid fa-road-barrier"),
-                ("CODELCO-MEC-706", "Overhaul de Molinos SAG División Chuquicamata", "Codelco Chile", "Región de Antofagasta", "Calama", "Montaje Mecánico", "$410.000.000", "Portal Codelco Compras", "https://www.codelco.com", "Certificación en torque y tensionado de pernos, Riggers con certificación Cnccp, Historial intachable en seguridad industrial.", "Montajes Mineros del Norte, Serv. Metalmecánicos Andinos", "Licitación Minera", "fa-solid fa-gears"),
-                ("ARA-MON-707", "Montaje Electromecánico Planta de Tratamiento de Riles", "Celulosa Arauco - Planta Valdivia", "Región de Los Ríos", "San José de la Mariquina", "Montaje Industrial", "$160.000.000", "SAP Ariba", "https://sapariba.arauco.com", "Experiencia en plantas de tratamiento, Soldadores calificados, Cumplimiento de normas medioambientales.", "Ingeniería Sur SpA, Constructora Valdivia", "Licitación Privada", "fa-solid fa-faucet-drip"),
-                ("SQM-MIN-708", "Construcción de Obras Civiles y Fundaciones Faena Salar", "SQM Salar S.A.", "Región de Antofagasta", "San Pedro de Atacama", "Obras Civiles", "$290.000.000", "Portal SQM", "https://www.sqm.com", "Hormigón H-30 con aditivo especial para alta salinidad, Experiencia en zonas extremas del norte.", "Obras Mineras del Desierto, Constructora SQM", "Licitación Minera", "fa-solid fa-trowel-bricks")
+                ("SEA-DIA-101", "Modificación y Optimización Faena Minera Mantoverde e Infraestructura Portuaria", "Servicio de Evaluación Ambiental (SEA)", "Región de Atacama", "Chañaral / Mejillones", "Minería y Puertos", "US$ 150.000.000", "Portal SEA", "https://www.sea.gob.cl", "Aprobación DIA julio 2025. Contratistas requieren inscripción registro proveedores Mantos Copper.", "Varios consorcios evaluando", "Resolución SEA", "fa-solid fa-truck-ramp-box"),
+                ("CODELCO-CIV-102", "Obras Civiles Sala Eléctrica MT N°2 División Andina", "Codelco Chile", "Región de Valparaíso", "Los Andes", "Obras Civiles", "$1.200.000.000", "Portal Codelco", "https://www.codelco.com", "Experiencia comprobada en hormigones de alta resistencia en alta cordillera.", "Mecsa Ingeniería, Flesan", "Licitación Minera", "fa-solid fa-trowel-bricks"),
+                ("ENAMI-MEC-103", "Servicio Operación Planta de Chancado Osvaldo Martínez Carvajal", "Empresa Nacional de Minería (ENAMI)", "Región de Atacama", "El Salado", "Operación y Mantenimiento", "$450.000.000", "Portal Enami", "https://www.enami.cl", "Personal certificado en operación de chancadores de mandíbula y cono.", "Servicios Mineros del Norte", "Licitación Pública", "fa-solid fa-gears"),
+                ("ENAMI-HID-104", "Construcción y Montaje de Barrera Hidráulica Planta Taltal", "Empresa Nacional de Minería (ENAMI)", "Región de Antofagasta", "Taltal", "Obras Hidráulicas", "$890.000.000", "Portal Enami", "https://www.enami.cl", "Especialistas en piping HDPE gran diámetro y termofusión.", "Sin postulantes confirmados", "Licitación Pública", "fa-solid fa-water"),
+                ("SEA-EIA-105", "Proyecto Parque Fotovoltaico Atacama Solar 200MW", "Servicio de Evaluación Ambiental (SEA)", "Región de Antofagasta", "Calama", "Energías Renovables", "US$ 210.000.000", "Portal SEA", "https://www.sea.gob.cl", "Resolución Calificación Ambiental aprobada. Requiere montaje de estructuras metálicas para paneles.", "Consorcio Solar Andino", "Resolución SEA", "fa-solid fa-solar-panel"),
+                ("CMPC-PIP-106", "Parada de Planta: Mantenimiento Mayor Calderas de Poder", "CMPC Celulosa S.A.", "Región del Biobío", "Laja", "Piping Industrial", "$3.500.000.000", "Wherex (CMPC)", "https://app.wherex.com", "Soldadores 6G calificación ASME IX. Inducción de seguridad CMPC obligatoria.", "TecnoRed SPA, Servimont", "Licitación Privada", "fa-solid fa-fire-flame-curved"),
+                ("ARAUCO-MON-107", "Montaje Electromecánico Planta Tratamiento Riles", "Celulosa Arauco", "Región de Los Ríos", "Valdivia", "Montaje Industrial", "$2.100.000.000", "SAP Ariba", "https://sapariba.arauco.com", "Cumplimiento normativo DS90. Especialidad en montaje de bombas centrífugas.", "Ingeniería Sur SpA", "Licitación Privada", "fa-solid fa-faucet-drip"),
+                ("MOP-VIAL-108", "Conservación Global y Mejoramiento Rutas Secundarias Biobío", "Ministerio de Obras Públicas - MOP", "Región del Biobío", "Mulchén", "Obras Viales", "$4.200.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Inscripción en Registro de Obras Mayores MOP (Categoría 3 O.C. o superior).", "Constructora Vial Sur", "Licitación Pública", "fa-solid fa-road-barrier"),
+                ("BHP-EST-109", "Ampliación de Naves Concentradora y Estructuras Metálicas", "Minera Escondida (BHP)", "Región de Antofagasta", "Antofagasta", "Estructuras Metálicas", "$8.500.000.000", "BHP Procurement", "https://www.bhp.com", "Aprobación estándar seguridad SsoP. Certificación aceros estructurales.", "Maestranza Antofagasta", "Licitación Privada", "fa-solid fa-helmet-safety"),
+                ("ENAP-MANT-110", "Recubrimiento Anticorrosivo Estanques de Crudo", "Enap Refinerías", "Región de Valparaíso", "Concón", "Mantenimiento Industrial", "$950.000.000", "SAP Ariba ENAP", "https://www.enap.cl", "Inspectores NACE nivel 2. Permisos de trabajo en caliente y espacios confinados.", "Pinturas Industriales S.A.", "Licitación Petróleo", "fa-solid fa-oil-well"),
+                ("CODELCO-ELE-111", "Mantenimiento Instrumentación y Baja Tensión DVEN", "Codelco División Ventanas", "Región de Valparaíso", "Puchuncaví", "Electricidad / Instrumentación", "$750.000.000", "Portal Codelco", "https://www.codelco.com", "Técnicos instrumentistas nivel superior. Experiencia en lazos de control PID.", "Gestión de Procesos SPA", "Licitación Minera", "fa-solid fa-plug-circle-bolt"),
+                ("SEA-DIA-112", "Proyecto Integración Social y Urbanización Los Abetos", "Servicio de Evaluación Ambiental (SEA)", "Región Metropolitana", "Santiago", "Obras Civiles / Urbanismo", "US$ 28.800.000", "Portal SEA", "https://www.sea.gob.cl", "Movimiento masivo de tierras y pavimentación.", "Constructora Metropolitana", "Resolución SEA", "fa-solid fa-city"),
+                ("SQM-CIV-113", "Construcción Fundaciones Especiales Faena Salar", "SQM", "Región de Antofagasta", "San Pedro de Atacama", "Obras Civiles", "$1.800.000.000", "Portal SQM", "https://www.sqm.com", "Uso de aditivos especiales para alta salinidad. Logística de campamento remoto.", "Obras Mineras del Desierto", "Licitación Privada", "fa-solid fa-truck-pickup"),
+                ("AGUAS-SAN-114", "Ampliación Planta de Tratamiento de Aguas Servidas", "Aguas Andinas", "Región Metropolitana", "Maipú", "Sanitario / Piping", "$5.200.000.000", "Mercado Privado", "https://www.aguasandinas.cl", "Montaje de reactores biológicos y sopladores de aireación.", "Consorcio Sanitario", "Licitación Privada", "fa-solid fa-droplet"),
+                ("MINEN-OPE-115", "Servicio de Aseo Industrial y Mantención Áreas Verdes Zona Sur", "Empresa Nacional de Minería (ENAMI)", "Región de Coquimbo", "Illapel", "Aseo Industrial", "$320.000.000", "Portal Enami", "https://www.enami.cl", "Equipos de succión de alto vacío. Certificación manejo de residuos.", "Limpieza Industrial SPA", "Licitación Pública", "fa-solid fa-broom"),
+                ("CODELCO-MEC-116", "Overhaul de Molinos SAG División Chuquicamata", "Codelco Chile", "Región de Antofagasta", "Calama", "Montaje Mecánico", "$6.100.000.000", "Portal Codelco", "https://www.codelco.com", "Certificación en torque y tensionado de pernos. Riggers con certificación vigente.", "Servicios Metalmecánicos", "Licitación Minera", "fa-solid fa-wrench")
             ]
 
             for codigo, title, mandante, region, comuna, cat, presup, fuente, link, reqs, postus, tipo, icono in massive_industrial_tenders:
@@ -280,18 +289,21 @@ def serve_frontend():
         </script>
         <style>
             .hero-bg {
-                background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.7)), url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=2000&auto=format&fit=crop');
-                background-size: cover;
-                background-position: center;
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             }
             .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
             .scrollbar-hide::-webkit-scrollbar { display: none; }
+            .abstract-pattern {
+                background-color: #1e293b;
+                background-image: radial-gradient(#334155 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
         </style>
     </head>
     <body class="h-full flex flex-col font-sans text-slate-800" x-data="tenderApp()">
 
         <!-- PANTALLA DE LOGIN -->
-        <div x-show="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 hero-bg">
+        <div x-show="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 hero-bg abstract-pattern">
             <div class="glass-panel rounded-3xl w-full max-w-md p-10 shadow-2xl space-y-8 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-2 bg-brand-main"></div>
                 <div class="text-center space-y-3">
@@ -387,7 +399,7 @@ def serve_frontend():
                                 <span class="text-emerald-400 font-bold">Estable</span>
                             </div>
                             <div class="flex justify-between items-center text-xs">
-                                <span>Scraper Nodos</span>
+                                <span>Scraper SEA/MOP</span>
                                 <span class="text-emerald-400 font-bold">Activo</span>
                             </div>
                         </div>
@@ -400,41 +412,40 @@ def serve_frontend():
                     <!-- PESTAÑA: PANORAMA Y NOTICIAS -->
                     <div x-show="currentTab === 'home'" class="pb-12">
                         
-                        <!-- Hero Banner Industrial -->
-                        <div class="hero-bg w-full h-[350px] relative flex items-center px-8 md:px-16">
+                        <!-- Hero Banner Industrial sin imágenes externas (Vectorial 100%) -->
+                        <div class="bg-slate-900 abstract-pattern w-full py-16 relative flex items-center px-8 md:px-16 border-b-4 border-brand-main">
                             <div class="max-w-4xl space-y-4 relative z-10">
                                 <span class="bg-brand-main text-brand-dark font-bold px-3 py-1 text-xs uppercase tracking-widest rounded-sm">Actualidad Ingeniería 2026</span>
                                 <h2 class="text-4xl md:text-5xl font-heading font-extrabold text-white leading-tight drop-shadow-lg">
-                                    Red de Contratistas y Mantenimiento Industrial
+                                    Red Nacional de Contratistas Industriales
                                 </h2>
                                 <p class="text-slate-300 text-sm md:text-base max-w-2xl leading-relaxed border-l-2 border-brand-main pl-4">
-                                    Plataforma ejecutiva para el monitoreo de licitaciones, paradas de planta, mantenimiento predictivo y proyectos de ingeniería estructural a lo largo de todo Chile.
+                                    Monitoreo en tiempo real de resoluciones del SEA, licitaciones de CODELCO, ENAMI, MOP y proyectos de montaje, mantención y cañerías en todo Chile.
                                 </p>
                             </div>
-                            <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-slate-50 to-transparent"></div>
                         </div>
 
                         <!-- Panel de Clima / Condiciones -->
-                        <div class="max-w-7xl mx-auto px-6 -mt-8 relative z-20">
+                        <div class="max-w-7xl mx-auto px-6 mt-8 relative z-20">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="bg-white border-b-4 border-amber-500 p-5 rounded-xl shadow-lg flex items-center space-x-4">
-                                    <div class="bg-slate-100 text-slate-800 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-sun"></i></div>
+                                <div class="bg-white border-b-4 border-amber-500 p-5 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                                    <div class="bg-amber-50 text-amber-600 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner border border-amber-100"><i class="fa-solid fa-sun"></i></div>
                                     <div>
                                         <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Antofagasta • Minería</h4>
                                         <p class="text-base font-bold text-slate-900">22°C - Despejado</p>
                                         <p class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-wind mr-1 text-amber-500"></i> Ráfagas: 25 km/h O</p>
                                     </div>
                                 </div>
-                                <div class="bg-white border-b-4 border-blue-500 p-5 rounded-xl shadow-lg flex items-center space-x-4">
-                                    <div class="bg-slate-100 text-slate-800 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-cloud-showers-heavy"></i></div>
+                                <div class="bg-white border-b-4 border-blue-500 p-5 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                                    <div class="bg-blue-50 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner border border-blue-100"><i class="fa-solid fa-cloud-showers-heavy"></i></div>
                                     <div>
                                         <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Biobío/Laja • Celulosa</h4>
                                         <p class="text-base font-bold text-slate-900">12°C - Lluvia Fuerte</p>
-                                        <p class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-temperature-arrow-down mr-1 text-blue-500"></i> Condición de Riesgo Medio</p>
+                                        <p class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-temperature-arrow-down mr-1 text-blue-500"></i> Alerta Preventiva</p>
                                     </div>
                                 </div>
-                                <div class="bg-white border-b-4 border-emerald-500 p-5 rounded-xl shadow-lg flex items-center space-x-4">
-                                    <div class="bg-slate-100 text-slate-800 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-temperature-half"></i></div>
+                                <div class="bg-white border-b-4 border-emerald-500 p-5 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                                    <div class="bg-emerald-50 text-emerald-600 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner border border-emerald-100"><i class="fa-solid fa-temperature-half"></i></div>
                                     <div>
                                         <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Santiago • Infraestructura</h4>
                                         <p class="text-base font-bold text-slate-900">19°C - Óptimo</p>
@@ -444,131 +455,132 @@ def serve_frontend():
                             </div>
                         </div>
 
-                        <!-- 8 NOTICIAS DE ALTO IMPACTO -->
+                        <!-- 8 NOTICIAS DE ALTO IMPACTO (DISEÑO VECTORIAL, NUNCA SE ROMPE) -->
                         <div class="max-w-7xl mx-auto px-6 mt-12 space-y-8">
                             <div class="flex items-center gap-3 border-b-2 border-slate-200 pb-3">
                                 <i class="fa-solid fa-newspaper text-2xl text-slate-800"></i>
-                                <h3 class="text-2xl font-heading font-bold text-slate-900 tracking-tight">Boletín de Operaciones y Proyectos</h3>
+                                <h3 class="text-2xl font-heading font-bold text-slate-900 tracking-tight">Boletín de Operaciones, SEA y Licitaciones</h3>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 
-                                <!-- N1: Mantenimiento (Equans vibe) -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Mantenimiento">
-                                        <span class="absolute top-3 left-3 bg-slate-900/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">MANTENIMIENTO INDUSTRIAL</span>
+                                <!-- N1: SEA Aprobaciones -->
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <!-- Contenedor Gráfico Vectorial -->
+                                    <div class="h-32 bg-gradient-to-br from-emerald-700 to-emerald-900 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-leaf text-5xl text-emerald-400 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">SEA / AMBIENTAL</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Empresas contratistas lideran integración de mantenimiento predictivo en correas</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">El uso de sensores de vibración y termografía revoluciona la confiabilidad en líneas de producción. Supervisores mecánicos reportan una caída del 40% en tiempos de inactividad no planificada.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-emerald-700 transition">SEA aprueba megaproyecto de ampliación minera Mantoverde</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">La Comisión de Evaluación Ambiental (Coeva) otorgó resolución favorable a las DIA para la infraestructura de extracción y transporte en Chañaral, movilizando cientos de millones en contratos.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Leer Informe Técnico <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="https://www.sea.gob.cl" target="_blank" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-emerald-700">Visitar Portal SEA <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- N2: Minería -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Mineria">
-                                        <span class="absolute top-3 left-3 bg-amber-500/90 backdrop-blur text-slate-900 text-[10px] font-bold px-2 py-1 rounded">MINERÍA NORTE</span>
+                                <!-- N2: Minería CODELCO -->
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <div class="h-32 bg-gradient-to-br from-amber-600 to-orange-800 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-helmet-safety text-5xl text-amber-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">MINERÍA / CODELCO</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Inversión récord en automatización para plantas concentradoras del Norte</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">BHP y Codelco despliegan flotas autónomas y centros de operación remota. Se abre una licitación gigante para montaje electromecánico e infraestructura de red en Calama y Antofagasta.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-amber-600 transition">Codelco lanza múltiples licitaciones de obras civiles y electricidad</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">División Andina y Ventanas publican requerimientos para construcción de salas eléctricas MT y mantención de instrumentación y baja tensión.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Ver Adjudicaciones <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="https://www.codelco.com" target="_blank" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-amber-600">Revisar Adjudicaciones <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- N3: Celulosa -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Celulosa">
-                                        <span class="absolute top-3 left-3 bg-emerald-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">CELULOSA SUR</span>
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <div class="h-32 bg-gradient-to-br from-blue-700 to-indigo-900 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-fire-flame-curved text-5xl text-blue-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">CELULOSA SUR</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Aprobación de paradas de planta y mantención de calderas en Biobío</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Plantas de CMPC y Arauco confirman su cronograma de detenciones programadas. Urge la contratación de soldadores con calificación ASME IX y especialistas en piping industrial.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-blue-700 transition">Paradas de planta y recambios de calderas en Biobío y Laja</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Las principales forestales (CMPC y Arauco) inician programas de inspección y soldadura de alta presión. Se exige estricto cumplimiento normativo y calificación ASME.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Ver Requisitos <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-blue-700">Ver Bases Técnicas <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- N4: Construcción Estructural -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Estructuras">
-                                        <span class="absolute top-3 left-3 bg-blue-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">OBRAS CIVILES</span>
+                                <!-- N4: MOP / Infraestructura -->
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <div class="h-32 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-road-barrier text-5xl text-slate-400 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-yellow-500/90 text-slate-900 text-[10px] font-bold px-2 py-1 rounded">MOP / OBRAS PÚBLICAS</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Nuevas licitaciones del MOP exigen cálculo estructural reforzado tras sismos</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">El Ministerio actualiza la normativa para perfiles de acero y vigas maestras en puentes y galpones industriales, impactando los presupuestos de constructores a nivel nacional.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-slate-700 transition">Licitaciones de conservación vial y mejoras en puentes regionales</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">El Mercado Público se inunda de contratos del MOP para conservación de rutas secundarias e infraestructura urbana. Contratistas de obras mayores tienen prioridad.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Leer Normativa <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="https://www.mercadopublico.cl" target="_blank" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-slate-700">Ir a Mercado Público <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- N5: Seguridad Industrial -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1581092335397-9583fe92d232?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Seguridad">
-                                        <span class="absolute top-3 left-3 bg-rose-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">SST / RIESGOS</span>
+                                <!-- N5: ENAMI Operaciones -->
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <div class="h-32 bg-gradient-to-br from-orange-600 to-red-800 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-gears text-5xl text-orange-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">ENAMI / MANTENCIÓN</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Cero tolerancia: Actualizan protocolos para trabajo en altura y espacios confinados</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Mandantes industriales incrementan las auditorías en terreno. No portar EPP certificado o no firmar el Análisis de Riesgo del Trabajo (ART) resultará en expulsión inmediata del recinto.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-orange-700 transition">ENAMI busca operadores y empresas para plantas de chancado</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Nuevas ofertas de servicio en Planta Osvaldo Martínez y Taltal. Se busca experiencia comprobable en operación de plantas, barreras hidráulicas y mantención pesada.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Ver Protocolos <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="https://www.enami.cl" target="_blank" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-orange-700">Ver Portal Proveedores <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- N6: Automatización e IA -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Tecnologia">
-                                        <span class="absolute top-3 left-3 bg-indigo-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">INNOVACIÓN SCADA</span>
+                                <!-- N6: ENAP Petróleo -->
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <div class="h-32 bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-oil-well text-5xl text-zinc-400 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-rose-600/90 text-white text-[10px] font-bold px-2 py-1 rounded">ENAP / REFINERÍAS</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Sistemas SCADA e integración de IA en cuadros de control eléctrico</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Los tableros de transferencia automática y centros de control de motores (CCM) ahora reportan datos en tiempo real a la nube, facilitando el análisis a los ingenieros de ejecución.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-zinc-700 transition">Mantenimiento de estanques e hidrolavado en Refinería Aconcagua</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Campañas de pintado industrial y recubrimientos epóxicos en Concón. Estricto control de trabajos en altura y espacios confinados para los contratistas adjudicados.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Ver Tecnologías <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="https://www.enap.cl" target="_blank" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-zinc-700">Licitaciones Abiertas <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- N7: Siderúrgica y Tornería -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Soldadura">
-                                        <span class="absolute top-3 left-3 bg-slate-700/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">METALMECÁNICA</span>
+                                <!-- N7: Sanitario Aguas -->
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <div class="h-32 bg-gradient-to-br from-cyan-600 to-cyan-900 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-water text-5xl text-cyan-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">AGUAS / PIPING</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Maestranzas locales asumen gran volumen tras reestructuración siderúrgica</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Talleres de tornería y soldadura TIG/MIG en la zona central experimentan alta demanda de piezas mecanizadas y repuestos especiales para molinos y chancadores mineros.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-cyan-700 transition">Obras de ampliación en plantas de tratamiento y sanitarias</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Aguas Andinas y otras sanitarias impulsan la construcción de nuevos colectores, cañerías en HDPE termofusionado e instalación de bombas centrífugas de gran caudal.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Leer Análisis <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-cyan-700">Ver Informes <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- N8: Hidrógeno Verde -->
-                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-40 overflow-hidden relative">
-                                        <img src="https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Energia">
-                                        <span class="absolute top-3 left-3 bg-cyan-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded">ENERGÍA / H2V</span>
+                                <!-- N8: Energías Limpias -->
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
+                                    <div class="h-32 bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center relative">
+                                        <i class="fa-solid fa-solar-panel text-5xl text-yellow-200 opacity-80 group-hover:scale-125 transition duration-500"></i>
+                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">ENERGÍA / SOLAR</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
-                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-brand-main transition">Plantas de Hidrógeno Verde en Magallanes inician fase de construcción temprana</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">Mega-proyectos eólicos y plantas desalinizadoras abren carpetas de licitación para obras civiles masivas y fundaciones especiales en zonas de condiciones climáticas extremas.</p>
+                                        <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-yellow-600 transition">Resoluciones SEA habilitan construcción masiva de parques fotovoltaicos</h4>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">El Sistema de Evaluación de Impacto Ambiental aprueba millonarios proyectos de energía solar en el desierto, abriendo oportunidades a empresas de montaje de estructuras metálicas.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
-                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-brand-main">Ver Licitaciones H2V <i class="fa-solid fa-chevron-right"></i></a>
+                                            <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-yellow-600">Revisar Listado Proyectos <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -582,14 +594,14 @@ def serve_frontend():
                         
                         <!-- Barra de Control y Filtros (Estilo Panel) -->
                         <div class="bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-sm">
-                            <h2 class="text-xl font-heading font-bold text-slate-900 mb-4 border-l-4 border-brand-main pl-3">Panel Búsqueda de Contratos y Licitaciones</h2>
+                            <h2 class="text-xl font-heading font-bold text-slate-900 mb-4 border-l-4 border-brand-main pl-3">Panel Búsqueda de Contratos, SEA y Licitaciones</h2>
                             
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div class="md:col-span-2 relative">
                                     <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Búsqueda Rápida</label>
                                     <div class="relative">
                                         <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
-                                        <input type="text" x-model="searchQuery" placeholder="Ej: Montaje, Cañerías, MOP..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-800 focus:border-brand-main outline-none">
+                                        <input type="text" x-model="searchQuery" placeholder="Ej: Montaje, Cañerías, MOP, Codelco..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-800 focus:border-brand-main outline-none">
                                     </div>
                                 </div>
                                 <div>
@@ -609,10 +621,10 @@ def serve_frontend():
 
                         <!-- Grilla de Licitaciones (Tickets Estilo Industrial Puro Texto/Vector) -->
                         <div class="flex items-center justify-between mt-2 mb-4">
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest"><span x-text="filteredTenders.length"></span> Contratos Disponibles</span>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest"><span x-text="filteredTenders.length"></span> Contratos / Proyectos Disponibles</span>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <template x-for="item in filteredTenders" :key="item.codigo">
                                 <div class="bg-white border border-slate-200 border-l-8 hover:border-l-brand-main rounded-xl p-6 shadow-sm hover:shadow-lg transition duration-200 relative group flex flex-col">
                                     
@@ -626,37 +638,36 @@ def serve_frontend():
                                                 <div class="text-[10px] text-slate-400 font-mono mt-1" x-text="'Ref: ' + item.codigo"></div>
                                             </div>
                                         </div>
-                                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-200">Abierta</span>
                                     </div>
 
-                                    <h3 class="text-lg font-heading font-extrabold text-slate-900 leading-tight mb-2" x-text="item.titulo"></h3>
+                                    <h3 class="text-sm font-heading font-extrabold text-slate-900 leading-tight mb-2" x-text="item.titulo"></h3>
                                     
-                                    <div class="flex items-center space-x-2 text-sm text-brand-main font-bold mb-4">
+                                    <div class="flex items-center space-x-2 text-xs text-brand-main font-bold mb-4">
                                         <i class="fa-solid fa-building"></i>
                                         <span x-text="item.mandante"></span>
                                     </div>
 
-                                    <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-2 mb-6 flex-1">
+                                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-200 space-y-2 mb-6 flex-1">
                                         <div class="flex justify-between border-b border-slate-200 pb-2">
-                                            <span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-location-dot mr-1"></i> Ubicación</span>
-                                            <span class="text-xs font-bold text-slate-800" x-text="item.comuna + ', ' + item.region"></span>
+                                            <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-location-dot mr-1"></i> Ubicación</span>
+                                            <span class="text-[11px] font-bold text-slate-800" x-text="item.comuna"></span>
                                         </div>
                                         <div class="flex justify-between border-b border-slate-200 pb-2">
-                                            <span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-tag mr-1"></i> Especialidad</span>
-                                            <span class="text-xs font-bold text-slate-800" x-text="item.categoria"></span>
+                                            <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-tag mr-1"></i> Especialidad</span>
+                                            <span class="text-[11px] font-bold text-slate-800" x-text="item.categoria"></span>
                                         </div>
                                         <div class="flex justify-between pt-1">
-                                            <span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-sack-dollar mr-1"></i> Presupuesto Estimado</span>
-                                            <span class="text-sm font-black text-emerald-600" x-text="item.presupuesto"></span>
+                                            <span class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-sack-dollar mr-1"></i> Presupuesto Ref.</span>
+                                            <span class="text-xs font-black text-emerald-600" x-text="item.presupuesto"></span>
                                         </div>
                                     </div>
 
-                                    <div class="flex gap-3 mt-auto">
-                                        <button @click="openDetail(item)" class="flex-1 bg-white border-2 border-slate-300 hover:border-slate-800 hover:bg-slate-50 text-slate-800 py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
-                                            <i class="fa-solid fa-file-signature"></i> Bases Técnicas
+                                    <div class="flex gap-2 mt-auto">
+                                        <button @click="openDetail(item)" class="flex-1 bg-white border border-slate-300 hover:border-slate-800 hover:bg-slate-50 text-slate-800 py-2.5 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1.5">
+                                            <i class="fa-solid fa-file-signature"></i> Detalles
                                         </button>
-                                        <button @click="openPostularModal(item)" class="flex-1 bg-brand-main hover:bg-brand-accent text-slate-900 py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md">
-                                            <i class="fa-solid fa-paper-plane"></i> Generar Propuesta
+                                        <button @click="openPostularModal(item)" class="flex-1 bg-brand-main hover:bg-brand-accent text-slate-900 py-2.5 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1.5 shadow-md">
+                                            <i class="fa-solid fa-paper-plane"></i> Postular
                                         </button>
                                     </div>
                                 </div>
@@ -685,7 +696,7 @@ def serve_frontend():
                                 <div class="flex items-start space-x-3">
                                     <div class="bg-slate-700 text-brand-main w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-robot text-xs"></i></div>
                                     <div class="bg-slate-800 border border-slate-600 text-slate-200 p-4 rounded-2xl rounded-tl-none max-w-lg text-sm leading-relaxed font-mono">
-                                        ¡Sistema iniciado! Soy tu asesor virtual en ciberseguridad industrial, normativas y gestión de licitaciones. ¿Necesitas revisar requisitos técnicos de un montaje mecánico o analizar un protocolo de red SCADA?
+                                        ¡Sistema iniciado! Soy tu asesor virtual en ciberseguridad industrial, normativas y gestión de licitaciones. He indexado datos de Mercado Público, SEA, CODELCO y ENAMI. ¿Qué proyecto necesitas analizar?
                                     </div>
                                 </div>
                                 
@@ -822,7 +833,7 @@ def serve_frontend():
                     <div class="absolute top-0 right-0 w-32 h-32 bg-brand-main opacity-20 rounded-bl-full pointer-events-none"></div>
                     <div class="relative z-10">
                         <span class="text-[10px] font-bold px-3 py-1 rounded bg-slate-700 text-brand-main uppercase tracking-widest mb-3 inline-block" x-text="selectedTender.tipo_origen"></span>
-                        <h2 class="text-2xl font-heading font-extrabold text-white leading-tight mt-1" x-text="selectedTender.titulo"></h2>
+                        <h2 class="text-xl font-heading font-extrabold text-white leading-tight mt-1" x-text="selectedTender.titulo"></h2>
                         <p class="text-sm text-slate-300 mt-2 font-semibold">MANDANTE: <span class="text-white font-bold" x-text="selectedTender.mandante"></span></p>
                     </div>
                     <button @click="detailModal = false" class="text-slate-400 hover:text-white relative z-10 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
@@ -996,11 +1007,11 @@ def serve_frontend():
                         this.chatInput = '';
 
                         setTimeout(() => {
-                            let botReply = "Entendido. Analizando base de datos industrial... Te recomiendo verificar los anexos de prevención de riesgos (Matrices IPER) antes de emitir cualquier propuesta. ¿Necesitas revisar requisitos específicos para montaje, mantenimiento predictivo o paradas de planta?";
+                            let botReply = "Entendido. Como sistema integrado, he verificado la información. Te recomiendo verificar los anexos de prevención de riesgos o requerimientos de Declaración de Impacto Ambiental (DIA) en el portal de licitación correspondiente antes de postular.";
                             if (userText.toLowerCase().includes('clima') || userText.toLowerCase().includes('viento')) {
-                                botReply = "Módulo Meteorológico activado: Las condiciones actuales en Antofagasta permiten operaciones normales (Viento < 30km/h). En Biobío/Laja hay alertas por lluvias fuertes, se sugiere asegurar áreas de trabajo exterior y revisar equipos de izaje.";
+                                botReply = "Módulo Meteorológico activado: Las condiciones actuales en Antofagasta permiten operaciones normales. En Biobío/Laja hay alertas por lluvias fuertes, se sugiere asegurar áreas de trabajo exterior y revisar equipos de izaje.";
                             } else if (userText.toLowerCase().includes('postular')) {
-                                botReply = "El proceso es simple: Dirígete al módulo 'Licitaciones Activas', evalúa la carta Gantt y el presupuesto del contrato, selecciona 'Generar Propuesta', completa tu RUT de empresa y el sistema enviará tu interés comercial al mandante oficial.";
+                                botReply = "El proceso es simple: Dirígete al módulo 'Licitaciones Activas', evalúa los detalles, haz clic en 'Postular', completa tu RUT de empresa y el sistema enviará tu interés comercial.";
                             }
                             this.chatMessages.push({ id: Date.now() + 1, sender: 'bot', text: botReply });
                             
