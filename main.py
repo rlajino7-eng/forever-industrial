@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="7.0.0")
+app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="8.0.0")
 
 DB_FILE = "industrial_hub.db"
 
@@ -30,7 +30,7 @@ def init_db():
             requisitos TEXT,
             empresas_postulando TEXT,
             tipo_origen TEXT,
-            imagen_url TEXT
+            icono_clase TEXT
         )
     ''')
     
@@ -106,21 +106,21 @@ def background_tender_scraper():
             cursor = conn.cursor()
             
             massive_industrial_tenders = [
-                ("ARAUCO-PIP-701", "Montaje de Líneas de Piping de Vapor de Alta Presión", "Celulosa Arauco y Constitución S.A.", "Región del Biobío", "Arauco", "Piping Industrial", "$185.000.000", "SAP Ariba (Arauco)", "https://sapariba.arauco.com", "Certificación ASME IX de soldadores, Inducción de seguridad Arauco obligatoria, Garantía de seriedad de la oferta 3%.", "TecnoRed SPA, Maestranza Biobío, Constructora del Sur", "Licitación Privada", "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800"),
-                ("CMPC-MANT-702", "Mantención Mayor de Calderas de Poder Planta Laja", "CMPC Celulosa S.A.", "Región del Biobío", "Laja", "Mantención y Calderas", "$140.000.000", "Wherex (CMPC)", "https://app.wherex.com", "Operadores con certificación SEC vigente, Experiencia mínima de 5 años en plantas de celulosa, Protocolos CMPC estrictos.", "CMPC Contratistas, Servimont Ltda.", "Licitación Privada", "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800"),
-                ("BHP-EST-703", "Fabricación y Montaje Estructuras Metálicas Naves de Concentrado", "Minera Escondida Ltda. (BHP)", "Región de Antofagasta", "Antofagasta", "Estructuras Metálicas", "$350.000.000", "BHP Global Procurement", "https://www.bhp.com", "Aprobación de estándar de seguridad minera SsoP, Certificación aceros ASTM A36/A572, Exámenes de altura y alcohol/drogas.", "Minera Servicios del Norte, Maestranza Antofagasta", "Licitación Minera", "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800"),
-                ("ENAP-EST-704", "Mantención y Recubrimiento Anticorrosivo Estanques", "Enap Refinerías Aconcagua", "Región de Valparaíso", "Concón", "Obras Civiles / Pintura", "$95.000.000", "SAP Ariba (ENAP)", "https://sapariba.arauco.com", "Certificación NACE para inspección de revestimientos, Protocolos de espacios confinados y trabajos en caliente.", "Constructora Aconcagua, Pinturas Industriales S.A.", "Licitación Petróleo", "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800"),
-                ("MOP-VIG-705", "Conservación Global y Mejoramiento de Rutas Secundarias", "Ministerio de Obras Públicas - MOP", "Región del Biobío", "Mulchén", "Obras Viales", "$220.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Inscripción en Registro de Obras Mayores MOP (Categoría 3 O.C. o superior), Maquinaria propia acreditada.", "Constructora Vial Sur, Obras Civiles Biobío Ltda.", "Licitación Pública", "https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800"),
-                ("CODELCO-MEC-706", "Overhaul de Molinos SAG División Chuquicamata", "Codelco Chile", "Región de Antofagasta", "Calama", "Montaje Mecánico", "$410.000.000", "Portal Codelco Compras", "https://www.codelco.com", "Certificación en torque y tensionado de pernos, Riggers con certificación Cnccp, Historial intachable en seguridad industrial.", "Montajes Mineros del Norte, Serv. Metalmecánicos Andinos", "Licitación Minera", "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800"),
-                ("ARA-MON-707", "Montaje Electromecánico Planta de Tratamiento de Riles", "Celulosa Arauco - Planta Valdivia", "Región de Los Ríos", "San José de la Mariquina", "Montaje Industrial", "$160.000.000", "SAP Ariba", "https://sapariba.arauco.com", "Experiencia en plantas de tratamiento, Soldadores calificados, Cumplimiento de normas medioambientales.", "Ingeniería Sur SpA, Constructora Valdivia", "Licitación Privada", "https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=800"),
-                ("SQM-MIN-708", "Construcción de Obras Civiles y Fundaciones Faena Salar", "SQM Salar S.A.", "Región de Antofagasta", "San Pedro de Atacama", "Obras Civiles", "$290.000.000", "Portal SQM", "https://www.sqm.com", "Hormigón H-30 con aditivo especial para alta salinidad, Experiencia en zonas extremas del norte.", "Obras Mineras del Desierto, Constructora SQM", "Licitación Minera", "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800")
+                ("ARAUCO-PIP-701", "Montaje de Líneas de Piping de Vapor de Alta Presión", "Celulosa Arauco y Constitución S.A.", "Región del Biobío", "Arauco", "Piping Industrial", "$185.000.000", "SAP Ariba (Arauco)", "https://sapariba.arauco.com", "Certificación ASME IX de soldadores, Inducción de seguridad Arauco obligatoria, Garantía de seriedad de la oferta 3%.", "TecnoRed SPA, Maestranza Biobío, Constructora del Sur", "Licitación Privada", "fa-solid fa-fire-flame-curved"),
+                ("CMPC-MANT-702", "Mantención Mayor de Calderas de Poder Planta Laja", "CMPC Celulosa S.A.", "Región del Biobío", "Laja", "Mantención y Calderas", "$140.000.000", "Wherex (CMPC)", "https://app.wherex.com", "Operadores con certificación SEC vigente, Experiencia mínima de 5 años en plantas de celulosa, Protocolos CMPC estrictos.", "CMPC Contratistas, Servimont Ltda.", "Licitación Privada", "fa-solid fa-industry"),
+                ("BHP-EST-703", "Fabricación y Montaje Estructuras Metálicas Naves de Concentrado", "Minera Escondida Ltda. (BHP)", "Región de Antofagasta", "Antofagasta", "Estructuras Metálicas", "$350.000.000", "BHP Global Procurement", "https://www.bhp.com", "Aprobación de estándar de seguridad minera SsoP, Certificación aceros ASTM A36/A572, Exámenes de altura y alcohol/drogas.", "Minera Servicios del Norte, Maestranza Antofagasta", "Licitación Minera", "fa-solid fa-mountain"),
+                ("ENAP-EST-704", "Mantención y Recubrimiento Anticorrosivo Estanques", "Enap Refinerías Aconcagua", "Región de Valparaíso", "Concón", "Obras Civiles / Pintura", "$95.000.000", "SAP Ariba (ENAP)", "https://sapariba.arauco.com", "Certificación NACE para inspección de revestimientos, Protocolos de espacios confinados y trabajos en caliente.", "Constructora Aconcagua, Pinturas Industriales S.A.", "Licitación Petróleo", "fa-solid fa-oil-well"),
+                ("MOP-VIG-705", "Conservación Global y Mejoramiento de Rutas Secundarias", "Ministerio de Obras Públicas - MOP", "Región del Biobío", "Mulchén", "Obras Viales", "$220.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Inscripción en Registro de Obras Mayores MOP (Categoría 3 O.C. o superior), Maquinaria propia acreditada.", "Constructora Vial Sur, Obras Civiles Biobío Ltda.", "Licitación Pública", "fa-solid fa-road"),
+                ("CODELCO-MEC-706", "Overhaul de Molinos SAG División Chuquicamata", "Codelco Chile", "Región de Antofagasta", "Calama", "Montaje Mecánico", "$410.000.000", "Portal Codelco Compras", "https://www.codelco.com", "Certificación en torque y tensionado de pernos, Riggers con certificación Cnccp, Historial intachable en seguridad industrial.", "Montajes Mineros del Norte, Serv. Metalmecánicos Andinos", "Licitación Minera", "fa-solid fa-gears"),
+                ("ARA-MON-707", "Montaje Electromecánico Planta de Tratamiento de Riles", "Celulosa Arauco - Planta Valdivia", "Región de Los Ríos", "San José de la Mariquina", "Montaje Industrial", "$160.000.000", "SAP Ariba", "https://sapariba.arauco.com", "Experiencia en plantas de tratamiento, Soldadores calificados, Cumplimiento de normas medioambientales.", "Ingeniería Sur SpA, Constructora Valdivia", "Licitación Privada", "fa-solid fa-water"),
+                ("SQM-MIN-708", "Construcción de Obras Civiles y Fundaciones Faena Salar", "SQM Salar S.A.", "Región de Antofagasta", "San Pedro de Atacama", "Obras Civiles", "$290.000.000", "Portal SQM", "https://www.sqm.com", "Hormigón H-30 con aditivo especial para alta salinidad, Experiencia en zonas extremas del norte.", "Obras Mineras del Desierto, Constructora SQM", "Licitación Minera", "fa-solid fa-solar-panel")
             ]
 
-            for codigo, title, mandante, region, comuna, cat, presup, fuente, link, reqs, postus, tipo, img in massive_industrial_tenders:
+            for codigo, title, mandante, region, comuna, cat, presup, fuente, link, reqs, postus, tipo, icono in massive_industrial_tenders:
                 cursor.execute('''
-                    INSERT OR IGNORE INTO tenders_cache (codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen, imagen_url)
+                    INSERT OR IGNORE INTO tenders_cache (codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen, icono_clase)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (codigo, title, mandante, region, comuna, cat, presup, (datetime.now() + timedelta(days=25)).strftime("%Y-%m-%d"), fuente, link, datetime.now().strftime("%Y-%m-%d %H:%M"), reqs, postus, tipo, img))
+                ''', (codigo, title, mandante, region, comuna, cat, presup, (datetime.now() + timedelta(days=25)).strftime("%Y-%m-%d"), fuente, link, datetime.now().strftime("%Y-%m-%d %H:%M"), reqs, postus, tipo, icono))
 
             conn.commit()
             conn.close()
@@ -183,7 +183,7 @@ def get_tenders():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen, imagen_url 
+        SELECT codigo, titulo, mandante, region, comuna, categoria, presupuesto, cierre, fuente, link, fecha_descubrimiento, requisitos, empresas_postulando, tipo_origen, icono_clase 
         FROM tenders_cache 
         GROUP BY titulo, mandante
         ORDER BY fecha_descubrimiento DESC
@@ -208,7 +208,7 @@ def get_tenders():
             "requisitos": r[11] or "Cumplimiento normativo de seguridad y bases técnicas completas del mandante.",
             "empresas_postulando": r[12] or "Sin postulantes registrados",
             "tipo_origen": r[13] or "Licitación Industrial",
-            "imagen_url": r[14] or "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800"
+            "icono_clase": r[14] or "fa-solid fa-industry"
         })
     return {"status": "success", "total": len(tenders_list), "tenders": tenders_list}
 
@@ -332,7 +332,7 @@ def serve_frontend():
                     <div class="space-y-1.5">
                         <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                             <i class="fa-solid fa-house w-5 text-yellow-600"></i>
-                            <span>Inicio y Noticias</span>
+                            <span>Inicio y Noticias Globales</span>
                         </button>
                         <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                             <i class="fa-solid fa-magnifying-glass-chart w-5 text-yellow-600"></i>
@@ -380,16 +380,16 @@ def serve_frontend():
                 <!-- Contenido Principal -->
                 <section class="flex-1 overflow-y-auto p-8 bg-slate-50">
                     
-                    <!-- INICIO Y NOTICIAS CON FOTOS OFICIALES -->
+                    <!-- INICIO Y NOTICIAS GLOBALES DE LA INDUSTRIA (SIN IMÁGENES ROTAS) -->
                     <div x-show="currentTab === 'home'" class="space-y-8 max-w-6xl mx-auto">
                         <div class="bg-white border-2 yellow-brand-border rounded-2xl p-8 shadow-sm space-y-4">
                             <div class="flex items-center gap-3 flex-wrap">
                                 <span class="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs px-3 py-1 rounded-full font-bold">Portal Certificado 2026</span>
-                                <span class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-yellow-600 mr-1"></i> Cobertura Nacional (Norte y Sur de Chile)</span>
+                                <span class="text-xs text-slate-500"><i class="fa-solid fa-earth-americas text-yellow-600 mr-1"></i> Modo Global & Nacional (Chile)</span>
                             </div>
                             <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Centro de Oportunidades y Empleos Industriales</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-4xl">
-                                Plataforma corporativa avanzada para la búsqueda, seguimiento y postulación a licitaciones privadas y públicas, montajes mecánicos, obras civiles y contratos de mantención mayor en las principales industrias del país. Actualizado de forma automática con requisitos técnicos y datos de mandantes en el norte y sur.
+                                Plataforma corporativa avanzada para la búsqueda, seguimiento y postulación a licitaciones privadas y públicas, montajes mecánicos, obras civiles y contratos de mantención mayor en las principales industrias del país.
                             </p>
                             <div class="pt-2">
                                 <button @click="currentTab = 'dashboard'" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-6 py-3 rounded-xl font-bold text-xs shadow transition">
@@ -398,32 +398,38 @@ def serve_frontend():
                             </div>
                         </div>
 
-                        <!-- Noticias y Proyectos Destacados (Norte y Sur) -->
+                        <!-- Noticias y Proyectos Globales / Nacionales con Iconos Profesionales -->
                         <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-500 pl-3">Proyectos Clave en Operación (Norte y Sur de Chile)</h3>
+                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-500 pl-3">Actualidad y Noticias Globales del Mundo Industrial</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md transition">
-                                    <img src="https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800" alt="Minera Norte" class="h-44 object-cover w-full">
-                                    <div class="p-5 space-y-2">
-                                        <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded">Zona Norte - Antofagasta / Calama</span>
-                                        <h4 class="font-bold text-slate-900 text-sm">Ampliación Faenas Mineras y Molinos SAG</h4>
-                                        <p class="text-xs text-slate-600 leading-relaxed">Contratos masivos de montaje electromecánico y estructuras en Codelco y Minera Escondida bajo estrictos estándares de seguridad.</p>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4">
+                                    <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl font-bold">
+                                        <i class="fa-solid fa-mountain-sun"></i>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded">Zona Norte - Antofagasta</span>
+                                        <h4 class="font-bold text-slate-900 text-base">Inversión y Nuevos Estándares en Minería</h4>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Impulso a la inversión minera con alta tecnología, automatización de plantas concentradoras y eficiencia hídrica en faenas del norte.</p>
                                     </div>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md transition">
-                                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800" alt="Celulosa Sur" class="h-44 object-cover w-full">
-                                    <div class="p-5 space-y-2">
-                                        <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded">Zona Sur - Biobío / Laja / Valdivia</span>
-                                        <h4 class="font-bold text-slate-900 text-sm">Paradas de Planta y Líneas de Piping en Celulosa</h4>
-                                        <p class="text-xs text-slate-600 leading-relaxed">Mantenciones mayores de calderas y redes de vapor con exigencia de certificación ASME en Arauco y CMPC.</p>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4">
+                                    <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
+                                        <i class="fa-solid fa-tree"></i>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded">Zona Sur - Biobío / Laja</span>
+                                        <h4 class="font-bold text-slate-900 text-base">Paradas de Planta y Eficiencia Forestal</h4>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Nuevas licitaciones para mantenciones mayores de calderas y redes de vapor de alta presión bajo estrictas normativas técnicas en el sur.</p>
                                     </div>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md transition">
-                                    <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800" alt="Vial MOP" class="h-44 object-cover w-full">
-                                    <div class="p-5 space-y-2">
-                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded">Zona Centro-Sur - Obras Viales</span>
-                                        <h4 class="font-bold text-slate-900 text-sm">Conservación Global y Redes Hidráulicas MOP</h4>
-                                        <p class="text-xs text-slate-600 leading-relaxed">Licitaciones públicas orientadas al mejoramiento de infraestructura vial y colectores industriales secundarios.</p>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4">
+                                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold">
+                                        <i class="fa-solid fa-road-bridge"></i>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded">Nacional - Infraestructura MOP</span>
+                                        <h4 class="font-bold text-slate-900 text-base">Plan de Obras Viales y Concesiones</h4>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Cartera masiva de licitaciones de conectividad vial, mejoramiento de rutas y obras hidráulicas a lo largo del país.</p>
                                     </div>
                                 </div>
                             </div>
@@ -446,15 +452,16 @@ def serve_frontend():
                             </div>
                         </div>
 
-                        <!-- Tarjetas de Licitaciones Completas -->
+                        <!-- Tarjetas de Licitaciones con Iconos Profesionales (Sin Errores de Imagen) -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <template x-for="item in filteredTenders" :key="item.codigo">
                                 <div class="bg-white border border-slate-200 hover:border-yellow-400 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between transition group">
                                     <div>
-                                        <div class="relative h-44 overflow-hidden">
-                                            <img :src="item.imagen_url" alt="Proyecto Industrial" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                            <div class="absolute top-3 left-3">
-                                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-sm text-slate-900 shadow" x-text="item.tipo_origen"></span>
+                                        <div class="h-32 bg-slate-900 flex items-center justify-center relative overflow-hidden">
+                                            <div class="absolute inset-0 bg-gradient-to-tr from-slate-950 to-slate-800"></div>
+                                            <i :class="item.icono_clase" class="text-4xl text-yellow-400 relative z-10 group-hover:scale-110 transition duration-300"></i>
+                                            <div class="absolute top-3 left-3 z-10">
+                                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/90 text-slate-900 shadow" x-text="item.tipo_origen"></span>
                                             </div>
                                         </div>
                                         <div class="p-5 space-y-3">
@@ -606,7 +613,9 @@ def serve_frontend():
                     <button @click="detailModal = false" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 
-                <img :src="selectedTender.imagen_url" class="h-48 w-full object-cover rounded-xl shadow-sm" alt="Detalle">
+                <div class="h-28 bg-slate-900 rounded-xl flex items-center justify-center">
+                    <i :class="selectedTender.icono_clase" class="text-4xl text-yellow-400"></i>
+                </div>
 
                 <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <div><span class="text-slate-400 block">Ubicación Exacta:</span><span class="font-bold text-slate-800" x-text="selectedTender.comuna + ', ' + selectedTender.region"></span></div>
