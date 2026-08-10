@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="12.0.0")
+app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="13.0.0")
 
 DB_FILE = "industrial_hub.db"
 
@@ -105,9 +105,8 @@ def background_tender_scraper():
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
             
-            # Base de datos masiva extraída de SEA, Mercado Público, CODELCO, ENAMI, MOP y Privados
             massive_industrial_tenders = [
-                ("SEA-DIA-101", "Modificación y Optimización Faena Minera Mantoverde e Infraestructura Portuaria", "Servicio de Evaluación Ambiental (SEA)", "Región de Atacama", "Chañaral / Mejillones", "Minería y Puertos", "US$ 150.000.000", "Portal SEA", "https://www.sea.gob.cl", "Aprobación DIA julio 2025. Contratistas requieren inscripción registro proveedores Mantos Copper.", "Varios consorcios evaluando", "Resolución SEA", "fa-solid fa-truck-ramp-box"),
+                ("SEA-DIA-101", "Modificación y Optimización Faena Minera Mantoverde e Infraestructura Portuaria", "Servicio de Evaluación Ambiental (SEA)", "Región de Atacama", "Chañaral / Mejillones", "Minería y Puertos", "US$ 150.000.000", "Portal SEA", "https://www.sea.gob.cl", "Aprobación DIA. Contratistas requieren inscripción registro proveedores Mantos Copper.", "Varios consorcios evaluando", "Resolución SEA", "fa-solid fa-truck-ramp-box"),
                 ("CODELCO-CIV-102", "Obras Civiles Sala Eléctrica MT N°2 División Andina", "Codelco Chile", "Región de Valparaíso", "Los Andes", "Obras Civiles", "$1.200.000.000", "Portal Codelco", "https://www.codelco.com", "Experiencia comprobada en hormigones de alta resistencia en alta cordillera.", "Mecsa Ingeniería, Flesan", "Licitación Minera", "fa-solid fa-trowel-bricks"),
                 ("ENAMI-MEC-103", "Servicio Operación Planta de Chancado Osvaldo Martínez Carvajal", "Empresa Nacional de Minería (ENAMI)", "Región de Atacama", "El Salado", "Operación y Mantenimiento", "$450.000.000", "Portal Enami", "https://www.enami.cl", "Personal certificado en operación de chancadores de mandíbula y cono.", "Servicios Mineros del Norte", "Licitación Pública", "fa-solid fa-gears"),
                 ("ENAMI-HID-104", "Construcción y Montaje de Barrera Hidráulica Planta Taltal", "Empresa Nacional de Minería (ENAMI)", "Región de Antofagasta", "Taltal", "Obras Hidráulicas", "$890.000.000", "Portal Enami", "https://www.enami.cl", "Especialistas en piping HDPE gran diámetro y termofusión.", "Sin postulantes confirmados", "Licitación Pública", "fa-solid fa-water"),
@@ -289,21 +288,21 @@ def serve_frontend():
         </script>
         <style>
             .hero-bg {
+                background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.7)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=2000');
+                background-size: cover;
+                background-position: center;
+            }
+            .login-bg {
                 background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             }
             .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
             .scrollbar-hide::-webkit-scrollbar { display: none; }
-            .abstract-pattern {
-                background-color: #1e293b;
-                background-image: radial-gradient(#334155 1px, transparent 1px);
-                background-size: 20px 20px;
-            }
         </style>
     </head>
     <body class="h-full flex flex-col font-sans text-slate-800" x-data="tenderApp()">
 
         <!-- PANTALLA DE LOGIN -->
-        <div x-show="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 hero-bg abstract-pattern">
+        <div x-show="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 login-bg hero-bg">
             <div class="glass-panel rounded-3xl w-full max-w-md p-10 shadow-2xl space-y-8 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-2 bg-brand-main"></div>
                 <div class="text-center space-y-3">
@@ -412,8 +411,8 @@ def serve_frontend():
                     <!-- PESTAÑA: PANORAMA Y NOTICIAS -->
                     <div x-show="currentTab === 'home'" class="pb-12">
                         
-                        <!-- Hero Banner Industrial sin imágenes externas (Vectorial 100%) -->
-                        <div class="bg-slate-900 abstract-pattern w-full py-16 relative flex items-center px-8 md:px-16 border-b-4 border-brand-main">
+                        <!-- Hero Banner Industrial con Imagen de Fondo -->
+                        <div class="hero-bg w-full py-16 relative flex items-center px-8 md:px-16 border-b-4 border-brand-main">
                             <div class="max-w-4xl space-y-4 relative z-10">
                                 <span class="bg-brand-main text-brand-dark font-bold px-3 py-1 text-xs uppercase tracking-widest rounded-sm">Actualidad Ingeniería 2026</span>
                                 <h2 class="text-4xl md:text-5xl font-heading font-extrabold text-white leading-tight drop-shadow-lg">
@@ -455,7 +454,7 @@ def serve_frontend():
                             </div>
                         </div>
 
-                        <!-- 8 NOTICIAS DE ALTO IMPACTO (DISEÑO VECTORIAL, NUNCA SE ROMPE) -->
+                        <!-- 8 NOTICIAS DE ALTO IMPACTO (CON IMÁGENES ESTABLES) -->
                         <div class="max-w-7xl mx-auto px-6 mt-12 space-y-8">
                             <div class="flex items-center gap-3 border-b-2 border-slate-200 pb-3">
                                 <i class="fa-solid fa-newspaper text-2xl text-slate-800"></i>
@@ -466,14 +465,13 @@ def serve_frontend():
                                 
                                 <!-- N1: SEA Aprobaciones -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <!-- Contenedor Gráfico Vectorial -->
-                                    <div class="h-32 bg-gradient-to-br from-emerald-700 to-emerald-900 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-leaf text-5xl text-emerald-400 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">SEA / AMBIENTAL</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80" alt="SEA" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-1 rounded">SEA / AMBIENTAL</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-emerald-700 transition">SEA aprueba megaproyecto de ampliación minera Mantoverde</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">La Comisión de Evaluación Ambiental (Coeva) otorgó resolución favorable a las DIA para la infraestructura de extracción y transporte en Chañaral, movilizando cientos de millones en contratos.</p>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">La Comisión de Evaluación Ambiental otorgó resolución favorable a las DIA para la infraestructura de extracción y transporte, movilizando contratos millonarios.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
                                             <a href="https://www.sea.gob.cl" target="_blank" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-emerald-700">Visitar Portal SEA <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
@@ -482,9 +480,9 @@ def serve_frontend():
 
                                 <!-- N2: Minería CODELCO -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-32 bg-gradient-to-br from-amber-600 to-orange-800 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-helmet-safety text-5xl text-amber-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">MINERÍA / CODELCO</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=800&q=80" alt="Codelco" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-amber-500/90 text-slate-900 text-[10px] font-bold px-2 py-1 rounded">MINERÍA / CODELCO</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-amber-600 transition">Codelco lanza múltiples licitaciones de obras civiles y electricidad</h4>
@@ -497,9 +495,9 @@ def serve_frontend():
 
                                 <!-- N3: Celulosa -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-32 bg-gradient-to-br from-blue-700 to-indigo-900 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-fire-flame-curved text-5xl text-blue-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">CELULOSA SUR</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80" alt="Celulosa" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-blue-600/90 text-white text-[10px] font-bold px-2 py-1 rounded">CELULOSA SUR</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-blue-700 transition">Paradas de planta y recambios de calderas en Biobío y Laja</h4>
@@ -512,9 +510,9 @@ def serve_frontend():
 
                                 <!-- N4: MOP / Infraestructura -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-32 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-road-barrier text-5xl text-slate-400 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-yellow-500/90 text-slate-900 text-[10px] font-bold px-2 py-1 rounded">MOP / OBRAS PÚBLICAS</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?auto=format&fit=crop&w=800&q=80" alt="MOP" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-slate-800/90 text-yellow-400 text-[10px] font-bold px-2 py-1 rounded">MOP / OBRAS PÚBLICAS</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-slate-700 transition">Licitaciones de conservación vial y mejoras en puentes regionales</h4>
@@ -527,9 +525,9 @@ def serve_frontend():
 
                                 <!-- N5: ENAMI Operaciones -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-32 bg-gradient-to-br from-orange-600 to-red-800 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-gears text-5xl text-orange-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">ENAMI / MANTENCIÓN</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=800&q=80" alt="Enami" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-orange-600/90 text-white text-[10px] font-bold px-2 py-1 rounded">ENAMI / MANTENCIÓN</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-orange-700 transition">ENAMI busca operadores y empresas para plantas de chancado</h4>
@@ -542,9 +540,9 @@ def serve_frontend():
 
                                 <!-- N6: ENAP Petróleo -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-32 bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-oil-well text-5xl text-zinc-400 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-rose-600/90 text-white text-[10px] font-bold px-2 py-1 rounded">ENAP / REFINERÍAS</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80" alt="Enap" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-zinc-800/90 text-rose-400 text-[10px] font-bold px-2 py-1 rounded">ENAP / REFINERÍAS</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-zinc-700 transition">Mantenimiento de estanques e hidrolavado en Refinería Aconcagua</h4>
@@ -557,9 +555,9 @@ def serve_frontend():
 
                                 <!-- N7: Sanitario Aguas -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-32 bg-gradient-to-br from-cyan-600 to-cyan-900 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-water text-5xl text-cyan-300 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">AGUAS / PIPING</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80" alt="Aguas" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-cyan-600/90 text-white text-[10px] font-bold px-2 py-1 rounded">AGUAS / PIPING</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-cyan-700 transition">Obras de ampliación en plantas de tratamiento y sanitarias</h4>
@@ -572,13 +570,13 @@ def serve_frontend():
 
                                 <!-- N8: Energías Limpias -->
                                 <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 border border-slate-200 group flex flex-col">
-                                    <div class="h-32 bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center relative">
-                                        <i class="fa-solid fa-solar-panel text-5xl text-yellow-200 opacity-80 group-hover:scale-125 transition duration-500"></i>
-                                        <span class="absolute top-3 left-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-1 rounded">ENERGÍA / SOLAR</span>
+                                    <div class="h-40 relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80" alt="Solar" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                        <span class="absolute top-3 left-3 bg-yellow-500/90 text-slate-900 text-[10px] font-bold px-2 py-1 rounded">ENERGÍA / SOLAR</span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
                                         <h4 class="font-bold text-slate-900 leading-snug mb-2 group-hover:text-yellow-600 transition">Resoluciones SEA habilitan construcción masiva de parques fotovoltaicos</h4>
-                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">El Sistema de Evaluación de Impacto Ambiental aprueba millonarios proyectos de energía solar en el desierto, abriendo oportunidades a empresas de montaje de estructuras metálicas.</p>
+                                        <p class="text-xs text-slate-600 mb-4 line-clamp-3">El Sistema de Evaluación de Impacto Ambiental aprueba millonarios proyectos de energía solar en el desierto, abriendo oportunidades a empresas de montaje estructural.</p>
                                         <div class="mt-auto pt-3 border-t border-slate-100">
                                             <a href="#" class="text-[11px] font-bold text-slate-900 uppercase flex items-center gap-1 hover:text-yellow-600">Revisar Listado Proyectos <i class="fa-solid fa-chevron-right"></i></a>
                                         </div>
@@ -1074,3 +1072,4 @@ def serve_frontend():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+
