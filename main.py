@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="5.0.0")
+app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="6.0.0")
 
 DB_FILE = "industrial_hub.db"
 
@@ -30,8 +30,7 @@ def init_db():
             requisitos TEXT,
             empresas_postulando TEXT,
             tipo_origen TEXT,
-            imagen_url TEXT,
-            detalles_completos TEXT
+            imagen_url TEXT
         )
     ''')
     
@@ -107,12 +106,14 @@ def background_tender_scraper():
             cursor = conn.cursor()
             
             massive_industrial_tenders = [
-                ("ARAUCO-PIP-801", "Montaje de Líneas de Piping de Vapor de Alta Presión y Condensados", "Celulosa Arauco y Constitución S.A.", "Región del Biobío", "Arauco", "Piping Industrial", "$185.000.000", "SAP Ariba (Arauco)", "https://sapariba.arauco.com", "Certificación ASME IX de soldadores, Inducción de seguridad Arauco obligatoria, Garantía de seriedad de la oferta 3%, Presentación de plan de calidad y control dimensional.", "TecnoRed SPA, Maestranza Biobío, Constructora del Sur", "Licitación Privada", "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800"),
-                ("CMPC-MANT-802", "Mantención Mayor de Calderas de Poder y Recuperación Planta Laja", "CMPC Celulosa S.A.", "Región del Biobío", "Laja", "Mantención y Calderas", "$140.000.000", "Wherex (CMPC)", "https://app.wherex.com", "Operadores con certificación SEC vigente, Experiencia mínima de 5 años en plantas de celulosa, Cumplimiento estricto de protocolos CMPC, Exámenes preocupacionales rigurosos.", "CMPC Contratistas, Servimont Ltda.", "Licitación Privada", "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800"),
-                ("BHP-EST-803", "Fabricación y Montaje Estructuras Metálicas Naves de Concentrado", "Minera Escondida Ltda. (BHP)", "Región de Antofagasta", "Antofagasta", "Estructuras Metálicas", "$350.000.000", "BHP Global Procurement", "https://www.bhp.com", "Aprobación de estándar de seguridad minera SsoP, Certificación calidad de aceros ASTM A36/A572, Exámenes de altura geográfica y alcohol/drogas al día.", "Minera Servicios del Norte, Maestranza Antofagasta", "Licitación Minera", "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800"),
-                ("ENAP-EST-804", "Mantención y Recubrimiento Anticorrosivo Estanques de Almacenamiento", "Enap Refinerías Aconcagua", "Región de Valparaíso", "Concón", "Obras Civiles / Pintura", "$95.000.000", "SAP Ariba (ENAP)", "https://sapariba.arauco.com", "Certificación NACE para inspección de revestimientos, Protocolos de espacios confinados y permisos de trabajo en caliente.", "Constructora Aconcagua, Pinturas Industriales S.A.", "Licitación Petróleo", "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800"),
-                ("MOP-VIG-805", "Conservación Global y Mejoramiento de Rutas Industriales Secundarias", "Ministerio de Obras Públicas - MOP", "Región del Biobío", "Mulchén", "Obras Viales", "$220.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Inscripción vigente en Registro de Obras Mayores MOP (Categoría 3 O.C. o superior), Maquinaria propia acreditada, Residente residente Ingeniero Civil.", "Constructora Vial Sur, Obras Civiles Biobío Ltda.", "Licitación Pública", "https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800"),
-                ("CODELCO-MEC-806", "Overhaul de Molinos SAG y Reparación de Corazas División Chuquicamata", "Codelco Chile", "Región de Antofagasta", "Calama", "Montaje Mecánico", "$410.000.000", "Portal Codelco Compras", "https://www.codelco.com", "Certificación en torque y tensionado de pernos estructurales, Riggers con certificación Cnccp, Historial intachable en seguridad industrial.", "Montajes Mineros del Norte, Serv. Metalmecánicos Andinos", "Licitación Minera", "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800")
+                ("ARAUCO-PIP-901", "Montaje de Líneas de Piping de Vapor de Alta Presión", "Celulosa Arauco y Constitución S.A.", "Región del Biobío", "Arauco", "Piping Industrial", "$185.000.000", "SAP Ariba (Arauco)", "https://sapariba.arauco.com", "Certificación ASME IX de soldadores, Inducción de seguridad Arauco obligatoria, Garantía de seriedad de la oferta 3%.", "TecnoRed SPA, Maestranza Biobío, Constructora del Sur", "Licitación Privada", "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800"),
+                ("CMPC-MANT-902", "Mantención Mayor de Calderas de Poder Planta Laja", "CMPC Celulosa S.A.", "Región del Biobío", "Laja", "Mantención y Calderas", "$140.000.000", "Wherex (CMPC)", "https://app.wherex.com", "Operadores con certificación SEC vigente, Experiencia mínima de 5 años en plantas de celulosa, Protocolos CMPC estrictos.", "CMPC Contratistas, Servimont Ltda.", "Licitación Privada", "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800"),
+                ("BHP-EST-903", "Fabricación y Montaje Estructuras Metálicas Naves de Concentrado", "Minera Escondida Ltda. (BHP)", "Región de Antofagasta", "Antofagasta", "Estructuras Metálicas", "$350.000.000", "BHP Global Procurement", "https://www.bhp.com", "Aprobación de estándar de seguridad minera SsoP, Certificación aceros ASTM A36/A572, Exámenes de altura y alcohol/drogas.", "Minera Servicios del Norte, Maestranza Antofagasta", "Licitación Minera", "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800"),
+                ("ENAP-EST-904", "Mantención y Recubrimiento Anticorrosivo Estanques", "Enap Refinerías Aconcagua", "Región de Valparaíso", "Concón", "Obras Civiles / Pintura", "$95.000.000", "SAP Ariba (ENAP)", "https://sapariba.arauco.com", "Certificación NACE para inspección de revestimientos, Protocolos de espacios confinados y trabajos en caliente.", "Constructora Aconcagua, Pinturas Industriales S.A.", "Licitación Petróleo", "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800"),
+                ("MOP-VIG-905", "Conservación Global y Mejoramiento de Rutas Secundarias", "Ministerio de Obras Públicas - MOP", "Región del Biobío", "Mulchén", "Obras Viales", "$220.000.000", "Mercado Público", "https://www.mercadopublico.cl", "Inscripción en Registro de Obras Mayores MOP (Categoría 3 O.C. o superior), Maquinaria propia acreditada.", "Constructora Vial Sur, Obras Civiles Biobío Ltda.", "Licitación Pública", "https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800"),
+                ("CODELCO-MEC-906", "Overhaul de Molinos SAG División Chuquicamata", "Codelco Chile", "Región de Antofagasta", "Calama", "Montaje Mecánico", "$410.000.000", "Portal Codelco Compras", "https://www.codelco.com", "Certificación en torque y tensionado de pernos, Riggers con certificación Cnccp, Historial intachable en seguridad industrial.", "Montajes Mineros del Norte, Serv. Metalmecánicos Andinos", "Licitación Minera", "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800"),
+                ("ARA-MON-907", "Montaje Electromecánico Planta de Tratamiento de Riles", "Celulosa Arauco - Planta Valdivia", "Región de Los Ríos", "San José de la Mariquina", "Montaje Industrial", "$160.000.000", "SAP Ariba", "https://sapariba.arauco.com", "Experiencia en plantas de tratamiento, Soldadores calificados, Cumplimiento de normas medioambientales.", "Ingeniería Sur SpA, Constructora Valdivia", "Licitación Privada", "https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=800"),
+                ("SQM-MIN-908", "Construcción de Obras Civiles y Fundaciones Faena Salar", "SQM Salar S.A.", "Región de Antofagasta", "San Pedro de Atacama", "Obras Civiles", "$290.000.000", "Portal SQM", "https://www.sqm.com", "Hormigón H-30 con aditivo especial para alta salinidad, Experiencia en zonas extremas del norte.", "Obras Mineras del Desierto, Constructora SQM", "Licitación Minera", "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800")
             ]
 
             for codigo, title, mandante, region, comuna, cat, presup, fuente, link, reqs, postus, tipo, img in massive_industrial_tenders:
@@ -264,34 +265,34 @@ def serve_frontend():
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
             body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1e293b; }
-            .yellow-brand-border { border-color: #facc15; }
-            .bg-yellow-brand { background-color: #facc15; }
+            .yellow-brand-border { border-color: #eab308; }
+            .bg-yellow-brand { background-color: #eab308; }
             .text-yellow-brand { color: #ca8a04; }
         </style>
     </head>
     <body class="h-full flex flex-col" x-data="tenderApp()">
 
         <!-- PANTALLA DE LOGIN -->
-        <div x-show="!isLoggedIn" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div x-show="!isLoggedIn" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white border-2 yellow-brand-border rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
                 <div class="text-center space-y-2">
-                    <div class="inline-flex bg-yellow-brand text-slate-950 p-3 rounded-2xl font-bold shadow-md">
+                    <div class="inline-flex bg-yellow-brand text-slate-950 p-3.5 rounded-2xl font-bold shadow-md">
                         <i class="fa-solid fa-industry text-2xl"></i>
                     </div>
                     <h1 class="text-2xl font-bold text-slate-900">Forever Industrial</h1>
-                    <p class="text-xs text-yellow-700 font-semibold">RS Ingeniería Industrial - Acceso Clientes</p>
+                    <p class="text-xs text-yellow-700 font-semibold uppercase tracking-wider">RS Ingeniería Industrial - Acceso Clientes</p>
                 </div>
                 <div class="space-y-4 text-xs">
                     <div>
                         <label class="text-slate-600 font-medium block mb-1">Correo Electrónico</label>
-                        <input type="email" x-model="loginForm.email" placeholder="admin@foreverindustrial.cl" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-yellow-500">
+                        <input type="email" x-model="loginForm.email" placeholder="admin@foreverindustrial.cl" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-yellow-500 font-medium">
                     </div>
                     <div>
                         <label class="text-slate-600 font-medium block mb-1">Contraseña</label>
-                        <input type="password" x-model="loginForm.password" placeholder="••••••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-yellow-500" @keyup.enter="login()">
+                        <input type="password" x-model="loginForm.password" placeholder="••••••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-yellow-500 font-medium" @keyup.enter="login()">
                     </div>
-                    <button @click="login()" class="w-full bg-yellow-brand hover:bg-yellow-400 text-slate-950 py-3 rounded-xl font-bold transition shadow-md text-sm">
-                        Iniciar Sesión
+                    <button @click="login()" class="w-full bg-yellow-brand hover:bg-yellow-500 text-slate-950 py-3.5 rounded-xl font-bold transition shadow-md text-sm">
+                        Iniciar Sesión en el Sistema
                     </button>
                 </div>
                 <p class="text-[11px] text-center text-slate-400">Plataforma exclusiva para profesionales y empresas del sector industrial.</p>
@@ -327,89 +328,102 @@ def serve_frontend():
 
             <main class="flex-1 overflow-hidden flex flex-col md:flex-row">
                 <!-- Sidebar de Navegación y Filtros -->
-                <aside class="w-full md:w-72 bg-slate-50 border-r border-slate-200 p-4 flex flex-col space-y-5 overflow-y-auto">
-                    <div class="space-y-1">
-                        <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left">
+                <aside class="w-full md:w-72 bg-slate-50 border-r border-slate-200 p-5 flex flex-col space-y-6 overflow-y-auto">
+                    <div class="space-y-1.5">
+                        <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                             <i class="fa-solid fa-house w-5 text-yellow-600"></i>
                             <span>Inicio y Noticias</span>
                         </button>
-                        <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left">
+                        <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                             <i class="fa-solid fa-magnifying-glass-chart w-5 text-yellow-600"></i>
-                            <span>Buscador de Empleos y Licitaciones</span>
+                            <span>Buscador de Empleos</span>
                         </button>
-                        <button @click="currentTab = 'postulaciones'" :class="currentTab === 'postulaciones' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left">
+                        <button @click="currentTab = 'postulaciones'" :class="currentTab === 'postulaciones' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                             <i class="fa-solid fa-clipboard-list w-5 text-yellow-600"></i>
                             <span>Mis Postulaciones</span>
-                            <span class="ml-auto bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full text-xs font-bold" x-text="postulaciones.length"></span>
+                            <span class="ml-auto bg-slate-200 text-slate-800 px-2.5 py-0.5 rounded-full text-xs font-bold" x-text="postulaciones.length"></span>
                         </button>
                         <template x-if="currentUser.is_admin">
-                            <button @click="currentTab = 'admin'; fetchClientes();" :class="currentTab === 'admin' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left">
+                            <button @click="currentTab = 'admin'; fetchClientes();" :class="currentTab === 'admin' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                                 <i class="fa-solid fa-shield-halved w-5 text-yellow-600"></i>
                                 <span>Panel Admin Master</span>
                             </button>
                         </template>
                     </div>
 
-                    <!-- FILTROS -->
-                    <div class="pt-4 border-t border-slate-200 space-y-3">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Filtrar por Región</h3>
-                        <select x-model="selectedRegion" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-yellow-500">
-                            <option value="">Todas las Regiones</option>
-                            <template x-for="reg in availableRegions" :key="reg">
-                                <option :value="reg" x-text="reg"></option>
-                            </template>
-                        </select>
+                    <!-- FILTROS AVANZADOS -->
+                    <div class="pt-4 border-t border-slate-200 space-y-4">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Filtros de Búsqueda</h3>
+                        
+                        <div class="space-y-1">
+                            <label class="text-[11px] text-slate-500 font-medium block">Filtrar por Región</label>
+                            <select x-model="selectedRegion" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-yellow-500">
+                                <option value="">Todas las Regiones de Chile</option>
+                                <template x-for="reg in availableRegions" :key="reg">
+                                    <option :value="reg" x-text="reg"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[11px] text-slate-500 font-medium block">Filtrar por Categoría</label>
+                            <select x-model="selectedCategory" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-yellow-500">
+                                <option value="">Todas las Categorías</option>
+                                <template x-for="cat in availableCategories" :key="cat">
+                                    <option :value="cat" x-text="cat"></option>
+                                </template>
+                            </select>
+                        </div>
                     </div>
                 </aside>
 
                 <!-- Contenido Principal -->
-                <section class="flex-1 overflow-y-auto p-6 bg-slate-50">
+                <section class="flex-1 overflow-y-auto p-8 bg-slate-50">
                     
                     <!-- INICIO Y NOTICIAS CON FOTOS OFICIALES -->
-                    <div x-show="currentTab === 'home'" class="space-y-8 max-w-5xl mx-auto">
-                        <!-- Banner de Bienvenida Profesional -->
+                    <div x-show="currentTab === 'home'" class="space-y-8 max-w-6xl mx-auto">
                         <div class="bg-white border-2 yellow-brand-border rounded-2xl p-8 shadow-sm space-y-4">
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-3 flex-wrap">
                                 <span class="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs px-3 py-1 rounded-full font-bold">Portal Certificado 2026</span>
                                 <span class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-yellow-600 mr-1"></i> Cobertura Nacional (Norte y Sur de Chile)</span>
                             </div>
-                            <h2 class="text-3xl font-bold text-slate-900">Bienvenido al Centro de Oportunidades Industriales</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed">
-                                Su plataforma de gestión avanzada para encontrar y postular a todas las grandes licitaciones, montajes electromecánicos, obras civiles y contratos de mantenimiento del sector industrial chileno. Actualizado en tiempo real con requerimientos completos y datos de mandantes.
+                            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Centro de Oportunidades y Empleos Industriales</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-4xl">
+                                Plataforma corporativa avanzada para la búsqueda, seguimiento y postulación a licitaciones privadas y públicas, montajes mecánicos, obras civiles y contratos de mantención mayor en las principales industrias del país. Actualizado de forma automática con requisitos técnicos y datos de mandantes en el norte y sur.
                             </p>
                             <div class="pt-2">
                                 <button @click="currentTab = 'dashboard'" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-6 py-3 rounded-xl font-bold text-xs shadow transition">
-                                    Ir al Buscador de Empleos y Licitaciones <i class="fa-solid fa-arrow-right ml-1"></i>
+                                    Ir al Buscador de Empleos <i class="fa-solid fa-arrow-right ml-1"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Noticias y Proyectos Destacados del Norte y Sur con Fotos de Mandantes -->
+                        <!-- Noticias y Proyectos Destacados (Norte y Sur) -->
                         <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-400 pl-3">Noticias y Proyectos Clave (Norte y Sur)</h3>
+                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-500 pl-3">Proyectos Clave en Operación (Norte y Sur de Chile)</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
-                                    <img src="https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800" alt="Minera Norte" class="h-40 object-cover w-full">
+                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                    <img src="https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800" alt="Minera Norte" class="h-44 object-cover w-full">
                                     <div class="p-5 space-y-2">
-                                        <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Zona Norte - Antofagasta</span>
+                                        <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded">Zona Norte - Antofagasta / Calama</span>
                                         <h4 class="font-bold text-slate-900 text-sm">Ampliación Faenas Mineras y Molinos SAG</h4>
-                                        <p class="text-xs text-slate-600">Nuevas licitaciones de montaje mecánico y estructuras metálicas en Codelco y Minera Escondida con altos estándares de seguridad.</p>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Contratos masivos de montaje electromecánico y estructuras en Codelco y Minera Escondida bajo estrictos estándares de seguridad.</p>
                                     </div>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
-                                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800" alt="Celulosa Sur" class="h-40 object-cover w-full">
+                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800" alt="Celulosa Sur" class="h-44 object-cover w-full">
                                     <div class="p-5 space-y-2">
-                                        <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">Zona Sur - Biobío y Laja</span>
-                                        <h4 class="font-bold text-slate-900 text-sm">Par parada de planta y Piping en Celulosa Arauco</h4>
-                                        <p class="text-xs text-slate-600">Contratos de alta exigencia técnica para mantención mayor y líneas de vapor con requisitos ASME estrictos en la región.</p>
+                                        <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded">Zona Sur - Biobío / Laja / Valdivia</span>
+                                        <h4 class="font-bold text-slate-900 text-sm">Paradas de Planta y Líneas de Piping en Celulosa</h4>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Mantenciones mayores de calderas y redes de vapor con exigencia de certificación ASME en Arauco y CMPC.</p>
                                     </div>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
-                                    <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800" alt="Vial MOP" class="h-40 object-cover w-full">
+                                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                    <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=800" alt="Vial MOP" class="h-44 object-cover w-full">
                                     <div class="p-5 space-y-2">
-                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Zona Centro-Sur</span>
-                                        <h4 class="font-bold text-slate-900 text-sm">Conservación Vial y Obras Hidráulicas MOP</h4>
-                                        <p class="text-xs text-slate-600">Licitaciones públicas orientadas al mejoramiento de colectores y rutas secundarias con financiamiento estatal asegurado.</p>
+                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded">Zona Centro-Sur - Obras Viales</span>
+                                        <h4 class="font-bold text-slate-900 text-sm">Conservación Global y Redes Hidráulicas MOP</h4>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Licitaciones públicas orientadas al mejoramiento de infraestructura vial y colectores industriales secundarios.</p>
                                     </div>
                                 </div>
                             </div>
@@ -417,14 +431,14 @@ def serve_frontend():
                     </div>
 
                     <!-- BUSCADOR DE EMPLEOS Y LICITACIONES -->
-                    <div x-show="currentTab === 'dashboard'" class="space-y-6">
+                    <div x-show="currentTab === 'dashboard'" class="space-y-6 max-w-7xl mx-auto">
                         <div class="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
-                            <div class="relative w-full md:w-96">
+                            <div class="relative w-full md:w-[450px]">
                                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
-                                <input type="text" x-model="searchQuery" placeholder="Buscar por título, mandante, comuna, categoría..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-yellow-500">
+                                <input type="text" x-model="searchQuery" placeholder="Buscar por título, mandante, comuna, categoría..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-yellow-500 font-medium">
                             </div>
                             <div class="flex items-center gap-3">
-                                <span class="text-xs text-slate-600 font-medium" x-text="filteredTenders.length + ' empleos y licitaciones disponibles'"></span>
+                                <span class="text-xs text-slate-600 font-semibold" x-text="filteredTenders.length + ' ofertas industriales activas'"></span>
                                 <button @click="fetchTenders()" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
                                     <i class="fa-solid fa-rotate" :class="loading ? 'fa-spin' : ''"></i>
                                     <span>Actualizar Buscador</span>
@@ -432,18 +446,23 @@ def serve_frontend():
                             </div>
                         </div>
 
-                        <!-- Tarjetas de Licitaciones Completas con Imágenes Oficiales -->
+                        <!-- Tarjetas de Licitaciones Completas -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <template x-for="item in filteredTenders" :key="item.codigo">
-                                <div class="bg-white border border-slate-200 hover:border-yellow-400 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between transition">
+                                <div class="bg-white border border-slate-200 hover:border-yellow-400 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between transition group">
                                     <div>
-                                        <img :src="item.imagen_url" alt="Proyecto Industrial" class="h-40 w-full object-cover">
+                                        <div class="relative h-44 overflow-hidden">
+                                            <img :src="item.imagen_url" alt="Proyecto Industrial" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                            <div class="absolute top-3 left-3">
+                                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-sm text-slate-900 shadow" x-text="item.tipo_origen"></span>
+                                            </div>
+                                        </div>
                                         <div class="p-5 space-y-3">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800" x-text="item.tipo_origen"></span>
-                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-800" x-text="item.categoria"></span>
+                                                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-800" x-text="item.categoria"></span>
+                                                <span class="text-[10px] font-mono text-slate-400" x-text="item.codigo"></span>
                                             </div>
-                                            <h3 class="font-bold text-slate-900 text-sm line-clamp-2" x-text="item.titulo"></h3>
+                                            <h3 class="font-bold text-slate-900 text-sm line-clamp-2 leading-snug" x-text="item.titulo"></h3>
                                             <p class="text-xs font-semibold text-yellow-700 flex items-center gap-1.5">
                                                 <i class="fa-solid fa-building"></i>
                                                 <span x-text="item.mandante"></span>
@@ -452,14 +471,14 @@ def serve_frontend():
                                             <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
                                                 <div class="flex justify-between">
                                                     <span class="text-slate-400">Región / Comuna:</span>
-                                                    <span class="font-medium text-slate-800" x-text="item.region + ' / ' + item.comuna"></span>
+                                                    <span class="font-medium text-slate-800 truncate max-w-[150px]" x-text="item.region + ' / ' + item.comuna"></span>
                                                 </div>
                                                 <div class="flex justify-between">
                                                     <span class="text-slate-400">Presupuesto Ref:</span>
                                                     <span class="font-bold text-emerald-600" x-text="item.presupuesto"></span>
                                                 </div>
                                                 <div class="flex justify-between">
-                                                    <span class="text-slate-400">Empresas Postulando:</span>
+                                                    <span class="text-slate-400">Postulantes:</span>
                                                     <span class="font-semibold text-indigo-600 truncate max-w-[140px]" x-text="item.empresas_postulando"></span>
                                                 </div>
                                             </div>
@@ -480,7 +499,7 @@ def serve_frontend():
                     </div>
 
                     <!-- MIS POSTULACIONES -->
-                    <div x-show="currentTab === 'postulaciones'" class="space-y-6">
+                    <div x-show="currentTab === 'postulaciones'" class="space-y-6 max-w-6xl mx-auto">
                         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                             <h2 class="text-lg font-bold text-slate-900 mb-1">Mis Postulaciones Registradas</h2>
                             <p class="text-xs text-slate-500 mb-6">Historial completo de propuestas comerciales y técnicas enviadas a través del buscador.</p>
@@ -503,8 +522,8 @@ def serve_frontend():
                                                 <td class="p-3 text-slate-500" x-text="p.fecha_postulacion"></td>
                                                 <td class="p-3 font-bold text-slate-900" x-text="p.nombre_empresa"></td>
                                                 <td class="p-3 text-slate-700">
-                                                    <span class="font-semibold" x-text="p.titulo"></span>
-                                                    <span class="block text-[10px] text-slate-400" x-text="p.mandante"></span>
+                                                    <span class="font-semibold block" x-text="p.titulo"></span>
+                                                    <span class="text-[10px] text-slate-400" x-text="p.mandante"></span>
                                                 </td>
                                                 <td class="p-3 text-slate-600" x-text="p.comuna + ', ' + p.region"></td>
                                                 <td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold" x-text="p.estado"></span></td>
@@ -523,7 +542,7 @@ def serve_frontend():
                     </div>
 
                     <!-- PANEL ADMIN MASTER -->
-                    <div x-show="currentTab === 'admin' && currentUser.is_admin" class="space-y-6">
+                    <div x-show="currentTab === 'admin' && currentUser.is_admin" class="space-y-6 max-w-6xl mx-auto">
                         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
                             <div>
                                 <h2 class="text-lg font-bold text-slate-900 mb-1"><i class="fa-solid fa-shield-halved text-yellow-600"></i> Panel Admin Master</h2>
@@ -561,7 +580,7 @@ def serve_frontend():
                                                     <td class="p-3 text-slate-400" x-text="c.id"></td>
                                                     <td class="p-3 font-bold text-slate-900" x-text="c.nombre_empresa"></td>
                                                     <td class="p-3 text-yellow-700 font-mono" x-text="c.email"></td>
-                                                    <td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold" x-text="c.estado"></span></td>
+                                                    <td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold" x-text="c.estado"></span></td>
                                                     <td class="p-3 text-slate-500" x-text="c.fecha_creacion"></td>
                                                 </tr>
                                             </template>
@@ -587,7 +606,7 @@ def serve_frontend():
                     <button @click="detailModal = false" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 
-                <img :src="selectedTender.imagen_url" class="h-48 w-full object-cover rounded-xl" alt="Detalle">
+                <img :src="selectedTender.imagen_url" class="h-48 w-full object-cover rounded-xl shadow-sm" alt="Detalle">
 
                 <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <div><span class="text-slate-400 block">Ubicación Exacta:</span><span class="font-bold text-slate-800" x-text="selectedTender.comuna + ', ' + selectedTender.region"></span></div>
@@ -658,6 +677,7 @@ def serve_frontend():
                     clientesList: [],
                     searchQuery: '',
                     selectedRegion: '',
+                    selectedCategory: '',
                     loading: false,
                     detailModal: false,
                     postularModal: false,
@@ -718,6 +738,9 @@ def serve_frontend():
                     get availableRegions() {
                         return Array.from(new Set(this.tenders.map(t => t.region)));
                     },
+                    get availableCategories() {
+                        return Array.from(new Set(this.tenders.map(t => t.categoria)));
+                    },
                     get filteredTenders() {
                         return this.tenders.filter(t => {
                             const matchesSearch = !this.searchQuery || 
@@ -726,7 +749,8 @@ def serve_frontend():
                                 t.comuna.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
                                 t.categoria.toLowerCase().includes(this.searchQuery.toLowerCase());
                             const matchesReg = !this.selectedRegion || t.region === this.selectedRegion;
-                            return matchesSearch && matchesReg;
+                            const matchesCat = !this.selectedCategory || t.categoria === this.selectedCategory;
+                            return matchesSearch && matchesReg && matchesCat;
                         });
                     },
                     openDetail(item) { this.selectedTender = item; this.detailModal = true; },
