@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="8.0.0")
+app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="9.0.0")
 
 DB_FILE = "industrial_hub.db"
 
@@ -380,7 +380,7 @@ def serve_frontend():
                 <!-- Contenido Principal -->
                 <section class="flex-1 overflow-y-auto p-8 bg-slate-50">
                     
-                    <!-- INICIO Y NOTICIAS GLOBALES DE LA INDUSTRIA (SIN IMÁGENES ROTAS) -->
+                    <!-- INICIO Y NOTICIAS GLOBALES EXTENSAS (ACTUALIZADAS Y CONTINUAS) -->
                     <div x-show="currentTab === 'home'" class="space-y-8 max-w-6xl mx-auto">
                         <div class="bg-white border-2 yellow-brand-border rounded-2xl p-8 shadow-sm space-y-4">
                             <div class="flex items-center gap-3 flex-wrap">
@@ -389,54 +389,79 @@ def serve_frontend():
                             </div>
                             <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Centro de Oportunidades y Empleos Industriales</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-4xl">
-                                Plataforma corporativa avanzada para la búsqueda, seguimiento y postulación a licitaciones privadas y públicas, montajes mecánicos, obras civiles y contratos de mantención mayor en las principales industrias del país.
+                                Plataforma corporativa avanzada para la búsqueda, seguimiento y postulación a licitaciones privadas y públicas, montajes mecánicos, obras civiles y contratos de mantención mayor en las principales industrias del país. Lea a continuación las últimas noticias y actualizaciones globales y locales del sector.
                             </p>
-                            <div class="pt-2">
-                                <button @click="currentTab = 'dashboard'" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-6 py-3 rounded-xl font-bold text-xs shadow transition">
-                                    Ir al Buscador de Empleos <i class="fa-solid fa-arrow-right ml-1"></i>
-                                </button>
-                            </div>
                         </div>
 
-                        <!-- Noticias y Proyectos Globales / Nacionales con Iconos Profesionales -->
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-500 pl-3">Actualidad y Noticias Globales del Mundo Industrial</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4">
-                                    <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl font-bold">
-                                        <i class="fa-solid fa-mountain-sun"></i>
+                        <!-- FEED DE NOTICIAS INDUSTRIALES EXTENSO (MÚLTIPLES NOTICIAS PARA BAJAR Y LEER) -->
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-500 pl-3">Últimas Noticias y Proyectos de la Industria Global y Nacional</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Noticia 1 -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
+                                    <div class="flex items-center justify-between text-xs text-slate-400">
+                                        <span class="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">Minería Norte</span>
+                                        <span>Actualizado Hoy</span>
                                     </div>
-                                    <div class="space-y-2">
-                                        <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded">Zona Norte - Antofagasta</span>
-                                        <h4 class="font-bold text-slate-900 text-base">Inversión y Nuevos Estándares en Minería</h4>
-                                        <p class="text-xs text-slate-600 leading-relaxed">Impulso a la inversión minera con alta tecnología, automatización de plantas concentradoras y eficiencia hídrica en faenas del norte.</p>
-                                    </div>
+                                    <h4 class="font-bold text-slate-900 text-base">Alza en la inversión minera y nuevos proyectos de cobre en el Norte Grande</h4>
+                                    <p class="text-xs text-slate-600 leading-relaxed">Los altos precios internacionales del cobre y el oro reimpulsan la cartera de proyectos exploratorios y de expansión subterránea en Codelco y Minera Escondida, generando alta demanda de contratos electromecánicos.</p>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4">
-                                    <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
-                                        <i class="fa-solid fa-tree"></i>
+
+                                <!-- Noticia 2 -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
+                                    <div class="flex items-center justify-between text-xs text-slate-400">
+                                        <span class="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[10px]">Forestal / Celulosa Sur</span>
+                                        <span>Actualizado Recientes</span>
                                     </div>
-                                    <div class="space-y-2">
-                                        <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded">Zona Sur - Biobío / Laja</span>
-                                        <h4 class="font-bold text-slate-900 text-base">Paradas de Planta y Eficiencia Forestal</h4>
-                                        <p class="text-xs text-slate-600 leading-relaxed">Nuevas licitaciones para mantenciones mayores de calderas y redes de vapor de alta presión bajo estrictas normativas técnicas en el sur.</p>
-                                    </div>
+                                    <h4 class="font-bold text-slate-900 text-base">CMPC y Arauco renuevan centros tecnológicos y programan paradas de planta</h4>
+                                    <p class="text-xs text-slate-600 leading-relaxed">Las principales plantas de celulosa en el Biobío, Laja y Valdivia anuncian sus programas de mantención mayor de calderas y líneas de vapor con estrictas exigencias de certificación ASME e ingeniería especializada.</p>
                                 </div>
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4">
-                                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold">
-                                        <i class="fa-solid fa-road-bridge"></i>
+
+                                <!-- Noticia 3 -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
+                                    <div class="flex items-center justify-between text-xs text-slate-400">
+                                        <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">Infraestructura MOP</span>
+                                        <span>Actualizado Esta Semana</span>
                                     </div>
-                                    <div class="space-y-2">
-                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded">Nacional - Infraestructura MOP</span>
-                                        <h4 class="font-bold text-slate-900 text-base">Plan de Obras Viales y Concesiones</h4>
-                                        <p class="text-xs text-slate-600 leading-relaxed">Cartera masiva de licitaciones de conectividad vial, mejoramiento de rutas y obras hidráulicas a lo largo del país.</p>
+                                    <h4 class="font-bold text-slate-900 text-base">Ministerio de Obras Públicas adjudica nueva cartera de conservación vial</h4>
+                                    <p class="text-xs text-slate-600 leading-relaxed">Iniciativas de conectividad vial secundaria y obras hidráulicas en regiones del centro-sur del país abren paso a la participación masiva de contratistas inscritos en el Registro de Obras Mayores.</p>
+                                </div>
+
+                                <!-- Noticia 4 -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
+                                    <div class="flex items-center justify-between text-xs text-slate-400">
+                                        <span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">Energía & Hidrógeno Verde</span>
+                                        <span>Perspectiva Global</span>
                                     </div>
+                                    <h4 class="font-bold text-slate-900 text-base">Avances en proyectos de desalinización y plantas fotovoltaicas</h4>
+                                    <p class="text-xs text-slate-600 leading-relaxed">El norte de Chile consolida su transición energética con la aprobación de nuevas Declaraciones de Impacto Ambiental para sistemas de bombeo de aguas industriales y energía solar fotovoltaica.</p>
+                                </div>
+
+                                <!-- Noticia 5 -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
+                                    <div class="flex items-center justify-between text-xs text-slate-400">
+                                        <span class="bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded text-[10px]">Innovación Industrial</span>
+                                        <span>Tecnología 2026</span>
+                                    </div>
+                                    <h4 class="font-bold text-slate-900 text-base">Integración de Inteligencia Artificial y Automatización en faenas</h4>
+                                    <p class="text-xs text-slate-600 leading-relaxed">Acuerdos estratégicos entre corporaciones mineras y gigantes tecnológicos aceleran la adopción de operaciones remotas, gemelos digitales y analítica avanzada para optimizar la producción.</p>
+                                </div>
+
+                                <!-- Noticia 6 -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
+                                    <div class="flex items-center justify-between text-xs text-slate-400">
+                                        <span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded text-[10px]">Seguridad y Normativa</span>
+                                        <span>Estándar ESG</span>
+                                    </div>
+                                    <h4 class="font-bold text-slate-900 text-base">Estrictos protocolos de disciplina operacional y sellos de producción</h4>
+                                    <p class="text-xs text-slate-600 leading-relaxed">Nuevas exigencias de auditoría internacional y estándares ESG marcan las pautas para adjudicaciones de contratos y subcontratación de proveedores en toda la red industrial chilena.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BUSCADOR DE EMPLEOS Y LICITACIONES -->
+                    <!-- BUSCADOR DE EMPLEOS Y LICITACIONES (SIN IMÁGENES, SOLO TEXTO Y VECTORES) -->
                     <div x-show="currentTab === 'dashboard'" class="space-y-6 max-w-7xl mx-auto">
                         <div class="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
                             <div class="relative w-full md:w-[450px]">
@@ -452,47 +477,47 @@ def serve_frontend():
                             </div>
                         </div>
 
-                        <!-- Tarjetas de Licitaciones con Iconos Profesionales (Sin Errores de Imagen) -->
+                        <!-- Tarjetas de Licitaciones Limpias (Sin Imágenes, Solo Vector e Información) -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <template x-for="item in filteredTenders" :key="item.codigo">
-                                <div class="bg-white border border-slate-200 hover:border-yellow-400 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between transition group">
-                                    <div>
-                                        <div class="h-32 bg-slate-900 flex items-center justify-center relative overflow-hidden">
-                                            <div class="absolute inset-0 bg-gradient-to-tr from-slate-950 to-slate-800"></div>
-                                            <i :class="item.icono_clase" class="text-4xl text-yellow-400 relative z-10 group-hover:scale-110 transition duration-300"></i>
-                                            <div class="absolute top-3 left-3 z-10">
-                                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/90 text-slate-900 shadow" x-text="item.tipo_origen"></span>
+                                <div class="bg-white border border-slate-200 hover:border-yellow-500 rounded-2xl p-6 shadow-sm flex flex-col justify-between transition group">
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-800 flex items-center justify-center font-bold text-sm">
+                                                    <i :class="item.icono_clase"></i>
+                                                </div>
+                                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800" x-text="item.tipo_origen"></span>
                                             </div>
+                                            <span class="text-[10px] font-mono text-slate-400" x-text="item.codigo"></span>
                                         </div>
-                                        <div class="p-5 space-y-3">
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-800" x-text="item.categoria"></span>
-                                                <span class="text-[10px] font-mono text-slate-400" x-text="item.codigo"></span>
-                                            </div>
-                                            <h3 class="font-bold text-slate-900 text-sm line-clamp-2 leading-snug" x-text="item.titulo"></h3>
+
+                                        <div class="space-y-2">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 inline-block" x-text="item.categoria"></span>
+                                            <h3 class="font-bold text-slate-900 text-sm line-clamp-2 leading-snug group-hover:text-yellow-700 transition" x-text="item.titulo"></h3>
                                             <p class="text-xs font-semibold text-yellow-700 flex items-center gap-1.5">
                                                 <i class="fa-solid fa-building"></i>
                                                 <span x-text="item.mandante"></span>
                                             </p>
-                                            
-                                            <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                                <div class="flex justify-between">
-                                                    <span class="text-slate-400">Región / Comuna:</span>
-                                                    <span class="font-medium text-slate-800 truncate max-w-[150px]" x-text="item.region + ' / ' + item.comuna"></span>
-                                                </div>
-                                                <div class="flex justify-between">
-                                                    <span class="text-slate-400">Presupuesto Ref:</span>
-                                                    <span class="font-bold text-emerald-600" x-text="item.presupuesto"></span>
-                                                </div>
-                                                <div class="flex justify-between">
-                                                    <span class="text-slate-400">Postulantes:</span>
-                                                    <span class="font-semibold text-indigo-600 truncate max-w-[140px]" x-text="item.empresas_postulando"></span>
-                                                </div>
+                                        </div>
+                                        
+                                        <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                            <div class="flex justify-between">
+                                                <span class="text-slate-400">Región / Comuna:</span>
+                                                <span class="font-medium text-slate-800 truncate max-w-[150px]" x-text="item.region + ' / ' + item.comuna"></span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-slate-400">Presupuesto Ref:</span>
+                                                <span class="font-bold text-emerald-600" x-text="item.presupuesto"></span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-slate-400">Postulantes:</span>
+                                                <span class="font-semibold text-indigo-600 truncate max-w-[140px]" x-text="item.empresas_postulando"></span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="p-5 pt-0 flex items-center space-x-2">
+                                    <div class="pt-5 flex items-center space-x-2">
                                         <button @click="openDetail(item)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2.5 rounded-xl text-xs font-semibold transition text-center border border-slate-300">
                                             Ver Requisitos
                                         </button>
@@ -613,7 +638,7 @@ def serve_frontend():
                     <button @click="detailModal = false" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 
-                <div class="h-28 bg-slate-900 rounded-xl flex items-center justify-center">
+                <div class="h-24 bg-slate-900 rounded-xl flex items-center justify-center">
                     <i :class="selectedTender.icono_clase" class="text-4xl text-yellow-400"></i>
                 </div>
 
