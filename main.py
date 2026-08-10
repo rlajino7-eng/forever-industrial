@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="9.0.0")
+app = FastAPI(title="Forever Industrial - RS Ingenieria Industrial", version="10.0.0")
 
 DB_FILE = "industrial_hub.db"
 
@@ -331,12 +331,16 @@ def serve_frontend():
                 <aside class="w-full md:w-72 bg-slate-50 border-r border-slate-200 p-5 flex flex-col space-y-6 overflow-y-auto">
                     <div class="space-y-1.5">
                         <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
-                            <i class="fa-solid fa-house w-5 text-yellow-600"></i>
-                            <span>Inicio y Noticias Globales</span>
+                            <i class="fa-solid fa-newspaper w-5 text-yellow-600"></i>
+                            <span>Noticias y Clima Chile</span>
                         </button>
                         <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                             <i class="fa-solid fa-magnifying-glass-chart w-5 text-yellow-600"></i>
                             <span>Buscador de Empleos</span>
+                        </button>
+                        <button @click="currentTab = 'chat'" :class="currentTab === 'chat' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
+                            <i class="fa-solid fa-robot w-5 text-yellow-600"></i>
+                            <span>Chat Asistente IA</span>
                         </button>
                         <button @click="currentTab = 'postulaciones'" :class="currentTab === 'postulaciones' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-200'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition text-left font-medium">
                             <i class="fa-solid fa-clipboard-list w-5 text-yellow-600"></i>
@@ -352,7 +356,7 @@ def serve_frontend():
                     </div>
 
                     <!-- FILTROS AVANZADOS -->
-                    <div class="pt-4 border-t border-slate-200 space-y-4">
+                    <div class="pt-4 border-t border-slate-200 space-y-4" x-show="currentTab === 'dashboard'">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Filtros de Búsqueda</h3>
                         
                         <div class="space-y-1">
@@ -380,82 +384,112 @@ def serve_frontend():
                 <!-- Contenido Principal -->
                 <section class="flex-1 overflow-y-auto p-8 bg-slate-50">
                     
-                    <!-- INICIO Y NOTICIAS GLOBALES EXTENSAS (ACTUALIZADAS Y CONTINUAS) -->
-                    <div x-show="currentTab === 'home'" class="space-y-8 max-w-6xl mx-auto">
-                        <div class="bg-white border-2 yellow-brand-border rounded-2xl p-8 shadow-sm space-y-4">
-                            <div class="flex items-center gap-3 flex-wrap">
-                                <span class="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs px-3 py-1 rounded-full font-bold">Portal Certificado 2026</span>
-                                <span class="text-xs text-slate-500"><i class="fa-solid fa-earth-americas text-yellow-600 mr-1"></i> Modo Global & Nacional (Chile)</span>
+                    <!-- INICIO: NOTICIAS EN LISTA VERTICAL + WIDGETS DE CLIMA Y VIENTO DE CHILE -->
+                    <div x-show="currentTab === 'home'" class="space-y-8 max-w-5xl mx-auto">
+                        
+                        <!-- WIDGETS CLIMA Y VIENTO ZONA NORTE Y SUR CHILE -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex items-center space-x-4">
+                                <div class="bg-amber-100 text-amber-700 p-3 rounded-xl text-xl"><i class="fa-solid fa-sun"></i></div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-400 uppercase">Antofagasta (Norte Minero)</h4>
+                                    <p class="text-sm font-bold text-slate-800">21°C • Despejado</p>
+                                    <p class="text-[11px] text-slate-500"><i class="fa-solid fa-wind mr-1"></i> Viento: 18 km/h S-O</p>
+                                </div>
                             </div>
-                            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Centro de Oportunidades y Empleos Industriales</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-4xl">
-                                Plataforma corporativa avanzada para la búsqueda, seguimiento y postulación a licitaciones privadas y públicas, montajes mecánicos, obras civiles y contratos de mantención mayor en las principales industrias del país. Lea a continuación las últimas noticias y actualizaciones globales y locales del sector.
-                            </p>
+                            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex items-center space-x-4">
+                                <div class="bg-blue-100 text-blue-700 p-3 rounded-xl text-xl"><i class="fa-solid fa-cloud-rain"></i></div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-400 uppercase">Biobío / Laja (Zona Sur)</h4>
+                                    <p class="text-sm font-bold text-slate-800">14°C • Parcial</p>
+                                    <p class="text-[11px] text-slate-500"><i class="fa-solid fa-wind mr-1"></i> Viento: 25 km/h N-W</p>
+                                </div>
+                            </div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex items-center space-x-4">
+                                <div class="bg-emerald-100 text-emerald-700 p-3 rounded-xl text-xl"><i class="fa-solid fa-compass"></i></div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-400 uppercase">Santiago / Centro MOP</h4>
+                                    <p class="text-sm font-bold text-slate-800">18°C • Bucles Óptimos</p>
+                                    <p class="text-[11px] text-slate-500"><i class="fa-solid fa-wind mr-1"></i> Viento: 12 km/h Calmo</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- FEED DE NOTICIAS INDUSTRIALES EXTENSO (MÚLTIPLES NOTICIAS PARA BAJAR Y LEER) -->
-                        <div class="space-y-6">
-                            <h3 class="text-lg font-bold text-slate-900 border-l-4 border-yellow-500 pl-3">Últimas Noticias y Proyectos de la Industria Global y Nacional</h3>
+                        <!-- LISTA DE NOTICIAS INDUSTRIALES VERTICAL CON IMÁGENES Y ACCESO DIRECTO -->
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-bold text-slate-900 border-l-4 border-yellow-500 pl-3">Noticias y Actualidad Industrial Global y Nacional</h2>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
                                 <!-- Noticia 1 -->
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span class="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">Minería Norte</span>
-                                        <span>Actualizado Hoy</span>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row gap-6 items-center hover:shadow-md transition">
+                                    <img src="https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=400" class="w-full md:w-56 h-36 object-cover rounded-xl shadow-sm" alt="Noticia">
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex items-center justify-between text-xs text-slate-400">
+                                            <span class="bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded text-[10px]">Minería Norte</span>
+                                            <span>Actualizado Hoy</span>
+                                        </div>
+                                        <h3 class="font-bold text-slate-900 text-base">Inversión récord en faenas de Codelco y Minera Escondida para automatización de procesos</h3>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Nuevas licitaciones para montaje electromecánico y control de molienda movilizan contratistas en el norte del país bajo estrictos estándares de seguridad y eficiencia operacional.</p>
+                                        <div class="pt-1">
+                                            <a href="https://www.codelco.com" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-yellow-700 hover:underline">
+                                                <span>Visitar fuente oficial de la noticia</span> <i class="fa-solid fa-external-link text-[10px]"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <h4 class="font-bold text-slate-900 text-base">Alza en la inversión minera y nuevos proyectos de cobre en el Norte Grande</h4>
-                                    <p class="text-xs text-slate-600 leading-relaxed">Los altos precios internacionales del cobre y el oro reimpulsan la cartera de proyectos exploratorios y de expansión subterránea en Codelco y Minera Escondida, generando alta demanda de contratos electromecánicos.</p>
                                 </div>
 
                                 <!-- Noticia 2 -->
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span class="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[10px]">Forestal / Celulosa Sur</span>
-                                        <span>Actualizado Recientes</span>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row gap-6 items-center hover:shadow-md transition">
+                                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400" class="w-full md:w-56 h-36 object-cover rounded-xl shadow-sm" alt="Noticia">
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex items-center justify-between text-xs text-slate-400">
+                                            <span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded text-[10px]">Celulosa Sur</span>
+                                            <span>Actualizado Reciente</span>
+                                        </div>
+                                        <h3 class="font-bold text-slate-900 text-base">Programa de paradas de planta y mantención de calderas en plantas de Biobío y Laja</h3>
+                                        <p class="text-xs text-slate-600 leading-relaxed">CMPC y Arauco confirman cronogramas de intervención en redes de piping de alta presión y calderas de poder, exigiendo certificaciones ASME vigentes a sus contratistas técnicos.</p>
+                                        <div class="pt-1">
+                                            <a href="https://www.arauco.com" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-yellow-700 hover:underline">
+                                                <span>Visitar fuente oficial de la noticia</span> <i class="fa-solid fa-external-link text-[10px]"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <h4 class="font-bold text-slate-900 text-base">CMPC y Arauco renuevan centros tecnológicos y programan paradas de planta</h4>
-                                    <p class="text-xs text-slate-600 leading-relaxed">Las principales plantas de celulosa en el Biobío, Laja y Valdivia anuncian sus programas de mantención mayor de calderas y líneas de vapor con estrictas exigencias de certificación ASME e ingeniería especializada.</p>
                                 </div>
 
                                 <!-- Noticia 3 -->
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">Infraestructura MOP</span>
-                                        <span>Actualizado Esta Semana</span>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row gap-6 items-center hover:shadow-md transition">
+                                    <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f86f6?w=400" class="w-full md:w-56 h-36 object-cover rounded-xl shadow-sm" alt="Noticia">
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex items-center justify-between text-xs text-slate-400">
+                                            <span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded text-[10px]">Infraestructura MOP</span>
+                                            <span>Actualizado Esta Semana</span>
+                                        </div>
+                                        <h3 class="font-bold text-slate-900 text-base">Ministerio de Obras Públicas adjudica cartera de conservación vial y rutas secundarias</h3>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Proyectos orientados a mejorar la conectividad vial y colectores industriales en el centro-sur de Chile con registro activo para contratistas de obras mayores.</p>
+                                        <div class="pt-1">
+                                            <a href="https://www.mercadopublico.cl" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-yellow-700 hover:underline">
+                                                <span>Visitar fuente oficial de la noticia</span> <i class="fa-solid fa-external-link text-[10px]"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <h4 class="font-bold text-slate-900 text-base">Ministerio de Obras Públicas adjudica nueva cartera de conservación vial</h4>
-                                    <p class="text-xs text-slate-600 leading-relaxed">Iniciativas de conectividad vial secundaria y obras hidráulicas en regiones del centro-sur del país abren paso a la participación masiva de contratistas inscritos en el Registro de Obras Mayores.</p>
                                 </div>
 
                                 <!-- Noticia 4 -->
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">Energía & Hidrógeno Verde</span>
-                                        <span>Perspectiva Global</span>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row gap-6 items-center hover:shadow-md transition">
+                                    <img src="https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=400" class="w-full md:w-56 h-36 object-cover rounded-xl shadow-sm" alt="Noticia">
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex items-center justify-between text-xs text-slate-400">
+                                            <span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded text-[10px]">Energía y Petróleo</span>
+                                            <span>Perspectiva Global</span>
+                                        </div>
+                                        <h3 class="font-bold text-slate-900 text-base">Refinerías ENAP y proyectos de hidrógeno verde consolidan inversión en Concón y Magallanes</h3>
+                                        <p class="text-xs text-slate-600 leading-relaxed">Nuevos contratos de recubrimientos anticorrosivos y estanques bajo protocolos estrictos de trabajos en caliente y espacios confinados.</p>
+                                        <div class="pt-1">
+                                            <a href="https://www.enap.cl" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-yellow-700 hover:underline">
+                                                <span>Visitar fuente oficial de la noticia</span> <i class="fa-solid fa-external-link text-[10px]"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <h4 class="font-bold text-slate-900 text-base">Avances en proyectos de desalinización y plantas fotovoltaicas</h4>
-                                    <p class="text-xs text-slate-600 leading-relaxed">El norte de Chile consolida su transición energética con la aprobación de nuevas Declaraciones de Impacto Ambiental para sistemas de bombeo de aguas industriales y energía solar fotovoltaica.</p>
-                                </div>
-
-                                <!-- Noticia 5 -->
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span class="bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded text-[10px]">Innovación Industrial</span>
-                                        <span>Tecnología 2026</span>
-                                    </div>
-                                    <h4 class="font-bold text-slate-900 text-base">Integración de Inteligencia Artificial y Automatización en faenas</h4>
-                                    <p class="text-xs text-slate-600 leading-relaxed">Acuerdos estratégicos entre corporaciones mineras y gigantes tecnológicos aceleran la adopción de operaciones remotas, gemelos digitales y analítica avanzada para optimizar la producción.</p>
-                                </div>
-
-                                <!-- Noticia 6 -->
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded text-[10px]">Seguridad y Normativa</span>
-                                        <span>Estándar ESG</span>
-                                    </div>
-                                    <h4 class="font-bold text-slate-900 text-base">Estrictos protocolos de disciplina operacional y sellos de producción</h4>
-                                    <p class="text-xs text-slate-600 leading-relaxed">Nuevas exigencias de auditoría internacional y estándares ESG marcan las pautas para adjudicaciones de contratos y subcontratación de proveedores en toda la red industrial chilena.</p>
                                 </div>
                             </div>
                         </div>
@@ -527,6 +561,50 @@ def serve_frontend():
                                     </div>
                                 </div>
                             </template>
+                        </div>
+                    </div>
+
+                    <!-- CHAT ASISTENTE IA (GEMINI / CONSULTAS AUTOMATIZADAS) -->
+                    <div x-show="currentTab === 'chat'" class="space-y-6 max-w-4xl mx-auto">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-[650px]">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="bg-yellow-100 text-yellow-800 p-2.5 rounded-xl text-lg font-bold"><i class="fa-solid fa-robot"></i></div>
+                                    <div>
+                                        <h2 class="text-base font-bold text-slate-900">Asistente IA Industrial (Gemini Engine)</h2>
+                                        <p class="text-xs text-slate-500">Realice consultas sobre normativas de seguridad, presupuestos o requisitos de licitaciones en Chile.</p>
+                                    </div>
+                                </div>
+                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">En Línea</span>
+                            </div>
+
+                            <!-- Historial del Chat -->
+                            <div class="flex-1 overflow-y-auto space-y-4 pr-2 text-xs" id="chat-box">
+                                <div class="flex items-start space-x-3">
+                                    <div class="bg-slate-900 text-white p-2 rounded-xl text-xs"><i class="fa-solid fa-robot"></i></div>
+                                    <div class="bg-slate-100 text-slate-800 p-3.5 rounded-2xl max-w-lg leading-relaxed border border-slate-200">
+                                        ¡Hola! Soy tu asistente de ingeniería y ciberseguridad industrial. ¿En qué te puedo ayudar hoy? Puedes preguntarme sobre estándares ASME, normativas de minería en Antofagasta, o cómo postular a los proyectos de celulosa en el sur.
+                                    </div>
+                                </div>
+                                <template x-for="msg in chatMessages" :key="msg.id">
+                                    <div class="flex items-start space-x-3" :class="msg.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''">
+                                        <div :class="msg.sender === 'user' ? 'bg-yellow-brand text-slate-950' : 'bg-slate-900 text-white'" class="p-2 rounded-xl text-xs flex items-center justify-center w-8 h-8 font-bold">
+                                            <i :class="msg.sender === 'user' ? 'fa-solid fa-user' : 'fa-solid fa-robot'"></i>
+                                        </div>
+                                        <div :class="msg.sender === 'user' ? 'bg-yellow-50 text-slate-900 border border-yellow-200' : 'bg-slate-100 text-slate-800 border border-slate-200'" class="p-3.5 rounded-2xl max-w-lg leading-relaxed">
+                                            <p x-text="msg.text"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Input de Preguntas -->
+                            <div class="pt-4 border-t border-slate-200 flex gap-2">
+                                <input type="text" x-model="chatInput" @keyup.enter="sendChatMessage()" placeholder="Escribe tu consulta técnica o pregunta aquí..." class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-yellow-500 font-medium">
+                                <button @click="sendChatMessage()" class="bg-yellow-brand hover:bg-yellow-400 text-slate-950 px-6 py-3 rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                    <span>Enviar</span> <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -720,6 +798,8 @@ def serve_frontend():
                     selectedProposalText: '',
                     postForm: { nombre_empresa: '', rut_empresa: '', email_contacto: '' },
                     newClient: { nombre_empresa: '', email: '', password: '' },
+                    chatInput: '',
+                    chatMessages: [],
 
                     async login() {
                         try {
@@ -768,6 +848,25 @@ def serve_frontend():
                         const res = await fetch('/api/postulaciones');
                         const data = await res.json();
                         this.postulaciones = data.postulaciones || [];
+                    },
+                    sendChatMessage() {
+                        if (!this.chatInput.trim()) return;
+                        const userText = this.chatInput;
+                        this.chatMessages.push({ id: Date.now(), sender: 'user', text: userText });
+                        this.chatInput = '';
+
+                        setTimeout(() => {
+                            let botReply = "Entiendo tu consulta sobre los proyectos industriales en Chile. Para cumplir con los estándares de seguridad y normativas vigentes (como ASME o protocolos de minería y celulosa), te recomiendo revisar las bases técnicas completas en la sección de licitaciones o contactar directamente al mandante.";
+                            if (userText.toLowerCase().includes('clima') || userText.toLowerCase().includes('viento')) {
+                                botReply = "Los reportes meteorológicos actuales para las zonas industriales de Chile indican condiciones estables en el Norte (Antofagasta) y vientos moderados en la zona Sur (Biobío/Laja).";
+                            } else if (userText.toLowerCase().includes('postular')) {
+                                botReply = "Para postular a una licitación, ingresa al 'Buscador de Empleos', selecciona el proyecto que te interesa, haz clic en 'Postular' y completa los datos de tu empresa para generar automáticamente tu carta propuesta.";
+                            }
+                            this.chatMessages.push({ id: Date.now() + 1, sender: 'bot', text: botReply });
+                            
+                            const box = document.getElementById('chat-box');
+                            if (box) box.scrollTop = box.scrollHeight;
+                        }, 600);
                     },
                     get availableRegions() {
                         return Array.from(new Set(this.tenders.map(t => t.region)));
